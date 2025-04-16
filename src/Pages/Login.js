@@ -1,18 +1,19 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login = ({ navigation }) => {
   const [dados, setDados] = useState({
     email: "",
     password: ""
   });
-  
+
   const [errors, setErrors] = useState({
     email: "",
     password: ""
   });
-  
+
   const [loading, setLoading] = useState(false);
 
   const handleChange = (field, value) => {
@@ -26,13 +27,13 @@ const Login = ({ navigation }) => {
   const handleSubmit = async () => {
     // Validação dos campos
     const newErrors = {
-      email: !dados.email.trim() 
-        ? "Por favor, preencha o campo de email." 
-        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email) 
-          ? "Por favor, insira um email válido." 
+      email: !dados.email.trim()
+        ? "Por favor, preencha o campo de email."
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email)
+          ? "Por favor, insira um email válido."
           : "",
-      password: !dados.password.trim() 
-        ? "Por favor, preencha o campo de senha." 
+      password: !dados.password.trim()
+        ? "Por favor, preencha o campo de senha."
         : dados.password.length < 6
           ? "A senha deve ter pelo menos 6 caracteres"
           : ""
@@ -68,7 +69,7 @@ const Login = ({ navigation }) => {
       if (response.status >= 200 && response.status < 300) {
         // Aqui você pode armazenar o token ou dados do usuário
         // await AsyncStorage.setItem('userToken', response.data.token);
-        
+        await AsyncStorage.setItem('token', response.data.token);
         // Navega para a página inicial
         navigation.navigate("HomePage");
       } else {
@@ -77,9 +78,9 @@ const Login = ({ navigation }) => {
     } catch (error) {
       console.error("Erro completo:", error);
       console.error("Dados da resposta:", error.response?.data);
-      
+
       let errorMessage = "Erro ao fazer login";
-      
+
       if (error.response) {
         // Erros específicos da API
         switch (error.response.status) {
@@ -105,7 +106,7 @@ const Login = ({ navigation }) => {
       } else {
         errorMessage = "Erro ao configurar a requisição: " + error.message;
       }
-      
+
       Alert.alert("Erro no Login", errorMessage);
     } finally {
       setLoading(false);
@@ -138,8 +139,8 @@ const Login = ({ navigation }) => {
       />
       {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
-      <TouchableOpacity 
-        style={styles.button} 
+      <TouchableOpacity
+        style={styles.button}
         onPress={handleSubmit}
         disabled={loading}
       >
