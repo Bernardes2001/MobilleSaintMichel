@@ -56,7 +56,6 @@ export default function BodyHome() {
                 </View>
             </View>
         </ScrollView>
-        
     );
 }
 

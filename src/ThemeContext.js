@@ -1,3 +1,4 @@
+// ThemeContext.js
 import React, { createContext, useState, useEffect } from 'react';
 import { Appearance } from 'react-native';
 
@@ -5,7 +6,7 @@ export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(false);
-  
+
   useEffect(() => {
     const colorScheme = Appearance.getColorScheme();
     setDarkMode(colorScheme === 'dark');
@@ -18,7 +19,7 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   const toggleTheme = () => {
-    setDarkMode(!darkMode);
+    setDarkMode(prevMode => !prevMode);
   };
 
   return (
