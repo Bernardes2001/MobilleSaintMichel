@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { ThemeContext } from './ThemeContext';
+import { ThemeContext } from '../ThemeContext';
 
 export default function NavBar({ navigation }) {
   const [modalVisivel, setModalVisivel] = useState(false);
