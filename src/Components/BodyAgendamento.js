@@ -11,7 +11,9 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
+
 import { format } from 'date-fns';
 
 const Agendamento = () => {
@@ -24,7 +26,7 @@ const Agendamento = () => {
   const [medicos, setMedicos] = useState([]);
   const [data, setData] = useState(null);
   const [hora, setHora] = useState(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showDateTimePicker, setShowDateTimePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   // Dados da outra pessoa
@@ -170,7 +172,7 @@ const Agendamento = () => {
           />
 
           <Text>Data</Text>
-          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+          <TouchableOpacity onPress={() => setShowDateTimePicker(true)}>
             <Text style={styles.input}>
               {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
             </Text>
@@ -183,13 +185,13 @@ const Agendamento = () => {
             </Text>
           </TouchableOpacity>
 
-          {showDatePicker && (
+          {showDateTimePicker && (
             <DateTimePicker
               value={data || new Date()}
               mode="date"
               display="default"
               onChange={(event, selectedDate) => {
-                setShowDatePicker(false);
+                setShowDateTimePicker(false);
                 if (selectedDate) setData(selectedDate);
               }}
             />
@@ -244,7 +246,7 @@ const Agendamento = () => {
           )}
 
           <Text>Data</Text>
-          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+          <TouchableOpacity onPress={() => setShowDateTimePicker(true)}>
             <Text style={styles.input}>
               {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
             </Text>
@@ -257,13 +259,13 @@ const Agendamento = () => {
             </Text>
           </TouchableOpacity>
 
-          {showDatePicker && (
+          {showDateTimePicker && (
             <DateTimePicker
               value={data || new Date()}
               mode="date"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={(event, selectedDate) => {
-                setShowDatePicker(false);
+                setShowDateTimePicker(false);
                 if (selectedDate) setData(selectedDate);
               }}
             />
