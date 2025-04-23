@@ -153,14 +153,15 @@ const Agendamento = () => {
         copyToCacheDirectory: true,
       });
 
-      console.log('Resultado do DocumentPicker:', result); // Adicione este log
+      // Verificação correta
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
 
-      if (result.type === 'success' && result.uri) {
         setPedidoMedico({
-          uri: result.uri,
-          name: result.name || 'documento.pdf',
-          type: result.mimeType || 'application/pdf',
-          size: result.size || 0
+          uri: file.uri,
+          name: file.name,
+          type: file.mimeType,
+          size: file.size
         });
       } else {
         Alert.alert('Atenção', 'Nenhum arquivo foi selecionado');
@@ -174,7 +175,6 @@ const Agendamento = () => {
   const removerPedidoMedico = () => {
     setPedidoMedico(null);
   };
-
 
   return (
     <ScrollView contentContainerStyle={estilos.container}>
@@ -272,7 +272,9 @@ const Agendamento = () => {
           <Text style={estilos.label}>Pedido Médico (PDF)</Text>
           {pedidoMedico ? (
             <View style={estilos.arquivoContainer}>
-              <Text style={estilos.arquivoNome}>{pedidoMedico.name}</Text>
+              <Text style={estilos.arquivoNome} numberOfLines={1} ellipsizeMode="middle">
+                {pedidoMedico.name}
+              </Text>
               <TouchableOpacity
                 style={estilos.removerArquivoButton}
                 onPress={removerPedidoMedico}
@@ -487,6 +489,29 @@ const getStyles = (darkMode) => StyleSheet.create({
   },
   removerArquivoText: {
     color: '#ff4444',
+  },
+  arquivoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: darkMode ? '#555' : '#ddd',
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  arquivoNome: {
+    flex: 1,
+    color: darkMode ? '#fff' : '#000',
+  },
+  removerArquivoButton: {
+    marginLeft: 10,
+    padding: 5,
+    backgroundColor: '#ff4444',
+    borderRadius: 5,
+  },
+  removerArquivoText: {
+    color: '#fff',
   },
   placeholderColor: darkMode ? '#BFD2F8' : '#666666',
 });
