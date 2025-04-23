@@ -31,17 +31,15 @@ const Agendamento = () => {
   const [showDateTimePicker, setShowDateTimePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
+  const estilos = getStyles(darkMode);
+
+
+  //Agendar consulta
   const especialidades = [
     'Ortopedista', 'Proctologista', 'Oncologista', 'Otorrinolaringologista',
     'Oftalmologista', 'Cardiologista', 'Pneumologista', 'Nefrologista',
     'Gastroenterologista', 'Urologista', 'Dermatologista', 'Ginecologista'
   ];
-
-  const tiposDeExame = [
-    'Exame de sangue', 'Raio X', 'Ultrassom', 'Tomografia', 'Ressonância magnética'
-  ];
-
-  const estilos = getStyles(darkMode);
 
   useEffect(() => {
     const buscarMedicos = async () => {
@@ -90,6 +88,13 @@ const Agendamento = () => {
     }
   };
 
+  //------------------------------------------------------------------------------
+
+  //Agendar exame
+  const tiposDeExame = [
+    'Exame de sangue', 'Raio X', 'Ultrassom', 'Tomografia', 'Ressonância magnética'
+  ];
+
   const agendarExame = async () => {
     if (!tipoDeExame || !exameEspecifico || !data || !hora || !pedidoMedico) { // Adicionei validação do pedidoMedico
       Alert.alert('Erro', 'Preencha todos os campos obrigatórios, incluindo o pedido médico');
@@ -106,18 +111,11 @@ const Agendamento = () => {
       formData.append('data', format(data, 'yyyy-MM-dd'));
       formData.append('hora', format(hora, 'HH:mm'));
 
-      // Adicione o arquivo PDF CORRETAMENTE
+      // Adicione o arquivo PDF
       formData.append('pedidoMedico', {
         uri: pedidoMedico.uri,
         name: pedidoMedico.name || 'pedido_medico.pdf',
         type: pedidoMedico.type || 'application/pdf'
-      });
-
-      // DEBUG: Mostre os dados que estão sendo enviados
-      console.log('Enviando:', {
-        uri: pedidoMedico.uri,
-        name: pedidoMedico.name,
-        type: pedidoMedico.type
       });
 
       const response = await axios.post('http://10.0.2.2:5000/exame/criarexame', formData, {
@@ -176,6 +174,10 @@ const Agendamento = () => {
     setPedidoMedico(null);
   };
 
+
+  //------------------------------------------------------------------------------
+
+  
   return (
     <ScrollView contentContainerStyle={estilos.container}>
 
