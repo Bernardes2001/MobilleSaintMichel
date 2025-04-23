@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { ThemeContext } from '../ThemeContext';
+import * as DocumentPicker from 'expo-document-picker';
 
 const Agendamento = () => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
@@ -35,7 +36,7 @@ const Agendamento = () => {
     'Oftalmologista', 'Cardiologista', 'Pneumologista', 'Nefrologista',
     'Gastroenterologista', 'Urologista', 'Dermatologista', 'Ginecologista'
   ];
-  
+
   const tiposDeExame = [
     'Exame de sangue', 'Raio X', 'Ultrassom', 'Tomografia', 'Ressonância magnética'
   ];
@@ -90,21 +91,90 @@ const Agendamento = () => {
   };
 
   const agendarExame = async () => {
-    if (!tipoDeExame || !exameEspecifico || !data || !hora) {
-      Alert.alert('Erro', 'Preencha todos os campos');
+    if (!tipoDeExame || !exameEspecifico || !data || !hora || !pedidoMedico) { // Adicionei validação do pedidoMedico
+      Alert.alert('Erro', 'Preencha todos os campos obrigatórios, incluindo o pedido médico');
       return;
     }
 
-    const payload = {
-      tipoDeExame,
-      exameEspecifico,
-      data: format(data, 'yyyy-MM-dd'),
-      hora: format(hora, 'HH:mm'),
-    };
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const formData = new FormData();
 
-    console.log('Agendando exame...', payload);
-    Alert.alert('Sucesso', 'Exame agendado com sucesso!');
+      // Adicione os campos básicos
+      formData.append('tipoDeExame', tipoDeExame);
+      formData.append('exameEspecifico', exameEspecifico);
+      formData.append('data', format(data, 'yyyy-MM-dd'));
+      formData.append('hora', format(hora, 'HH:mm'));
+
+      // Adicione o arquivo PDF CORRETAMENTE
+      formData.append('pedidoMedico', {
+        uri: pedidoMedico.uri,
+        name: pedidoMedico.name || 'pedido_medico.pdf',
+        type: pedidoMedico.type || 'application/pdf'
+      });
+
+      // DEBUG: Mostre os dados que estão sendo enviados
+      console.log('Enviando:', {
+        uri: pedidoMedico.uri,
+        name: pedidoMedico.name,
+        type: pedidoMedico.type
+      });
+
+      const response = await axios.post('http://10.0.2.2:5000/exame/criarexame', formData, {
+        headers: {
+          'Authorization': `Bearer ${token?.trim()}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      Alert.alert('Sucesso', 'Exame agendado com sucesso!');
+      // Limpe os campos
+      setTipoDeExame('');
+      setExameEspecifico('');
+      setData(null);
+      setHora(null);
+      setPedidoMedico(null);
+
+    } catch (err) {
+      console.error('Erro detalhado:', {
+        request: err.request,
+        response: err.response,
+        message: err.message
+      });
+      Alert.alert('Erro', err.response?.data?.message || 'Não foi possível agendar o exame');
+    }
   };
+
+
+  const selecionarPedidoMedico = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+
+      console.log('Resultado do DocumentPicker:', result); // Adicione este log
+
+      if (result.type === 'success' && result.uri) {
+        setPedidoMedico({
+          uri: result.uri,
+          name: result.name || 'documento.pdf',
+          type: result.mimeType || 'application/pdf',
+          size: result.size || 0
+        });
+      } else {
+        Alert.alert('Atenção', 'Nenhum arquivo foi selecionado');
+      }
+    } catch (err) {
+      console.error('Erro ao selecionar arquivo:', err);
+      Alert.alert('Erro', 'Falha ao selecionar o arquivo');
+    }
+  };
+
+  const removerPedidoMedico = () => {
+    setPedidoMedico(null);
+  };
+
 
   return (
     <ScrollView contentContainerStyle={estilos.container}>
@@ -153,8 +223,8 @@ const Agendamento = () => {
           />
 
           <Text style={estilos.label}>Data</Text>
-          <TouchableOpacity 
-            style={estilos.dateInput} 
+          <TouchableOpacity
+            style={estilos.dateInput}
             onPress={() => setShowDateTimePicker(true)}
           >
             <Text style={estilos.dateText}>
@@ -163,8 +233,8 @@ const Agendamento = () => {
           </TouchableOpacity>
 
           <Text style={estilos.label}>Horário</Text>
-          <TouchableOpacity 
-            style={estilos.dateInput} 
+          <TouchableOpacity
+            style={estilos.dateInput}
             onPress={() => setShowTimePicker(true)}
           >
             <Text style={estilos.dateText}>
@@ -198,6 +268,27 @@ const Agendamento = () => {
               themeVariant={darkMode ? 'dark' : 'light'}
             />
           )}
+
+          <Text style={estilos.label}>Pedido Médico (PDF)</Text>
+          {pedidoMedico ? (
+            <View style={estilos.arquivoContainer}>
+              <Text style={estilos.arquivoNome}>{pedidoMedico.name}</Text>
+              <TouchableOpacity
+                style={estilos.removerArquivoButton}
+                onPress={removerPedidoMedico}
+              >
+                <Text style={estilos.removerArquivoText}>Remover</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={estilos.uploadButton}
+              onPress={selecionarPedidoMedico}
+            >
+              <Text style={estilos.uploadButtonText}>Selecionar Arquivo PDF</Text>
+            </TouchableOpacity>
+          )}
+
 
           <TouchableOpacity style={estilos.button} onPress={agendarExame}>
             <Text style={estilos.buttonText}>Agendar Exame</Text>
@@ -242,8 +333,8 @@ const Agendamento = () => {
           )}
 
           <Text style={estilos.label}>Data</Text>
-          <TouchableOpacity 
-            style={estilos.dateInput} 
+          <TouchableOpacity
+            style={estilos.dateInput}
             onPress={() => setShowDateTimePicker(true)}
           >
             <Text style={estilos.dateText}>
@@ -252,8 +343,8 @@ const Agendamento = () => {
           </TouchableOpacity>
 
           <Text style={estilos.label}>Horário</Text>
-          <TouchableOpacity 
-            style={estilos.dateInput} 
+          <TouchableOpacity
+            style={estilos.dateInput}
             onPress={() => setShowTimePicker(true)}
           >
             <Text style={estilos.dateText}>
@@ -366,6 +457,36 @@ const getStyles = (darkMode) => StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  uploadButton: {
+    backgroundColor: darkMode ? '#555' : '#e0e0e0',
+    padding: 15,
+    borderRadius: 5,
+    marginBottom: 15,
+    alignItems: 'center',
+  },
+  uploadButtonText: {
+    color: darkMode ? '#fff' : '#333',
+  },
+  arquivoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: darkMode ? '#444' : '#f0f0f0',
+    padding: 15,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  arquivoNome: {
+    color: darkMode ? '#fff' : '#333',
+    flex: 1,
+  },
+  removerArquivoButton: {
+    marginLeft: 10,
+    padding: 5,
+  },
+  removerArquivoText: {
+    color: '#ff4444',
   },
   placeholderColor: darkMode ? '#BFD2F8' : '#666666',
 });
