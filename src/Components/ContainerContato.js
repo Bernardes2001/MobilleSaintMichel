@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, ScrollView } from "react-native";
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, ScrollView, Alert } from "react-native";
 import MapView, { Marker } from 'react-native-maps';
 import { ThemeContext } from '../ThemeContext';
+import axios from "axios";
 
 export default function ContainerContato() {
   const [nome, setNome] = React.useState('');
@@ -12,9 +13,55 @@ export default function ContainerContato() {
 
   const estilos = getStyles(darkMode);
 
-  const handleSubmit = () => {
-    // Handle form submission logic here
-    console.log({ nome, email, assunto, mensagem });
+  const handleSubmit = async () => {
+    // Validação do nome
+    if (!nome || nome.trim().length < 3) {
+      Alert.alert("Nome inválido", "Por favor, insira um nome com pelo menos 3 caracteres.");
+      return;
+    }
+
+    // Validação do e-mail
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      Alert.alert("E-mail inválido", "Por favor, insira um endereço de e-mail válido.");
+      return;
+    }
+
+    // Validação do assunto
+    if (!assunto || assunto.trim().length < 5) {
+      Alert.alert("Assunto inválido", "O assunto deve ter pelo menos 5 caracteres.");
+      return;
+    }
+
+    // Validação da mensagem
+    if (!mensagem || mensagem.trim().length < 10) {
+      Alert.alert("Mensagem muito curta", "Por favor, escreva uma mensagem com pelo menos 10 caracteres.");
+      return;
+    }
+
+    if (mensagem.length > 500) {
+      Alert.alert("Mensagem muito longa", "A mensagem não pode exceder 500 caracteres.");
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://10.0.2.2:5000/contato', {
+        nome: nome.trim(),
+        email: email.trim(),
+        assunto: assunto.trim(),
+        mensagem: mensagem.trim(),
+      });
+
+      Alert.alert('Sucesso', 'Contato enviado com sucesso!');
+      setNome('');
+      setEmail('');
+      setAssunto('');
+      setMensagem('');
+
+    } catch (error) {
+      console.error('Erro ao enviar:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente mais tarde.');
+    }
   };
 
   return (
@@ -36,12 +83,12 @@ export default function ContainerContato() {
         />
       </MapView>
 
-  
+
 
       <View style={estilos.formContainer}>
         <Text style={estilos.headerText}>ENTRE EM CONTATO</Text>
         <Text style={estilos.titleText}>Contato</Text>
-        
+
         <View style={estilos.inputRow}>
           <TextInput
             style={estilos.input}
@@ -59,7 +106,7 @@ export default function ContainerContato() {
             keyboardType="email-address"
           />
         </View>
-        
+
         <TextInput
           style={estilos.inputSingle}
           placeholder="Assunto"
@@ -67,7 +114,7 @@ export default function ContainerContato() {
           value={assunto}
           onChangeText={setAssunto}
         />
-        
+
         <TextInput
           style={estilos.inputMessage}
           placeholder="Mensagem"
@@ -77,14 +124,14 @@ export default function ContainerContato() {
           multiline
           numberOfLines={4}
         />
-        
-        <TouchableOpacity 
-          style={estilos.submitButton} 
+
+        <TouchableOpacity
+          style={estilos.submitButton}
           onPress={handleSubmit}
         >
           <Text style={estilos.submitButtonText}>Enviar</Text>
         </TouchableOpacity>
-        
+
         <View style={estilos.contactInfo}>
           <Text style={estilos.contactText}>Endereço: Av. Marechal Tito, 340</Text>
           <Text style={estilos.contactText}>Telefone: (11) 6818-1255</Text>
@@ -222,5 +269,5 @@ const getStyles = (darkMode) => StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
-  placeholderColor: '#BFD2F8', 
+  placeholderColor: '#BFD2F8',
 });
