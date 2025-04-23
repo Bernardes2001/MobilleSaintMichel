@@ -1,42 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Linking, TouchableOpacity, Appearance } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, Linking, TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { ThemeContext } from '../ThemeContext';
 
 const BodySobre = () => {
-  const [darkMode, setDarkMode] = useState(false);
-  
-  useEffect(() => {
-    const colorScheme = Appearance.getColorScheme();
-    setDarkMode(colorScheme === 'dark');
-    
-    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-      setDarkMode(colorScheme === 'dark');
-    });
-    
-    return () => subscription.remove();
-  }, []);
+  const { darkMode, toggleTheme } = useContext(ThemeContext);
+  const estilos = getStyles(darkMode);
 
   const abrirLink = (url) => {
     Linking.openURL(url);
   };
 
-  const estilos = getStyles(darkMode);
-
   return (
     <ScrollView contentContainerStyle={estilos.container}>
-      {/* Botão de alternância de tema */}
-      <TouchableOpacity 
-        style={estilos.toggleButton}
-        onPress={() => setDarkMode(!darkMode)}
-      >
-        <Text style={estilos.toggleButtonText}>
-          {darkMode ? "☀️ Modo Claro" : "🌙 Modo Escuro"}
-        </Text>
-      </TouchableOpacity>
-
+    
       <View style={estilos.cabecalho}>
         <Image
-          source={require('../../assets/LogoAzul.png')} 
+          source={darkMode ? require('../../assets/Logo.png') : require('../../assets/LogoAzul.png')}
           style={estilos.logo}
         />
         <Text style={estilos.slogan}>Cuidar de você é nossa missão divina</Text>
@@ -141,6 +121,7 @@ const getStyles = (darkMode) => StyleSheet.create({
     flexGrow: 1,
     backgroundColor: darkMode ? '#121212' : '#f9f9f9',
     padding: 20,
+    paddingBottom: 40,
   },
   cabecalho: {
     alignItems: 'center',
@@ -150,6 +131,7 @@ const getStyles = (darkMode) => StyleSheet.create({
     width: 150,
     height: 150,
     marginBottom: 15,
+    resizeMode: 'contain',
   },
   slogan: {
     fontSize: 18,
@@ -158,68 +140,68 @@ const getStyles = (darkMode) => StyleSheet.create({
     fontStyle: 'italic',
   },
   conteudo: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#BFD2F8',
+    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: darkMode ? 0.1 : 0.05,
     shadowRadius: 4,
     elevation: 3,
   },
   servicos: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#BFD2F8',
+    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: darkMode ? 0.1 : 0.05,
     shadowRadius: 4,
     elevation: 3,
   },
   depoimentos: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#BFD2F8',
+    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: darkMode ? 0.1 : 0.05,
     shadowRadius: 4,
     elevation: 3,
   },
   galeria: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#BFD2F8',
+    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: darkMode ? 0.1 : 0.05,
     shadowRadius: 4,
     elevation: 3,
   },
   mapaContainer: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#BFD2F8',
+    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: darkMode ? 0.1 : 0.05,
     shadowRadius: 4,
     elevation: 3,
   },
   contato: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#BFD2F8',
+    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: darkMode ? 0.1 : 0.05,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -232,29 +214,31 @@ const getStyles = (darkMode) => StyleSheet.create({
   },
   texto: {
     fontSize: 16,
-    color: darkMode ? '#BFD2F8' : '#1F2B6C',
+    color: darkMode ? '#BFD2F8' : '#333333',
     lineHeight: 24,
     marginBottom: 15,
     textAlign: 'justify',
   },
   itemServico: {
     fontSize: 16,
-    color: darkMode ? '#BFD2F8' : '#1F2B6C',
+    color: darkMode ? '#BFD2F8' : '#333333',
     lineHeight: 24,
     marginBottom: 10,
   },
   textoDepoimento: {
     fontSize: 16,
-    color: darkMode ? '#BFD2F8' : '#1F2B6C',
+    color: darkMode ? '#BFD2F8' : '#333333',
     lineHeight: 24,
     marginBottom: 10,
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   imagemGaleria: {
     width: '100%',
     height: 200,
     borderRadius: 10,
     marginBottom: 10,
+    resizeMode: 'cover',
   },
   mapa: {
     width: '100%',
@@ -267,11 +251,12 @@ const getStyles = (darkMode) => StyleSheet.create({
     lineHeight: 24,
     marginBottom: 10,
     textDecorationLine: 'underline',
+    textAlign: 'center',
   },
   toggleButton: {
     backgroundColor: darkMode ? '#1F2B6C' : '#159EEC',
-    padding: 10,
-    borderRadius: 20,
+    padding: 12,
+    borderRadius: 25,
     marginBottom: 20,
     alignSelf: 'center',
     width: '40%',
@@ -280,6 +265,7 @@ const getStyles = (darkMode) => StyleSheet.create({
     color: darkMode ? '#BFD2F8' : '#FFFFFF',
     fontWeight: 'bold',
     textAlign: 'center',
+    fontSize: 16,
   },
 });
 

@@ -1,63 +1,47 @@
-import React, { useState, useEffect } from "react";
-import { Image, StyleSheet, Text, View, TouchableOpacity, Appearance } from "react-native";
+import React, { useContext } from "react";
+import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { ThemeContext } from '../ThemeContext';
 
-export default function Header() {
-    const [darkMode, setDarkMode] = useState(false);
-
-    useEffect(() => {
-        const colorScheme = Appearance.getColorScheme();
-        setDarkMode(colorScheme === 'dark');
-        
-        const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-            setDarkMode(colorScheme === 'dark');
-        });
-        
-        return () => subscription.remove();
-    }, []);
-
-    const estilos = getStyles(darkMode);
+export default function CompactHeader() {
+    const { darkMode, toggleTheme } = useContext(ThemeContext);
+    const styles = getStyles(darkMode);
 
     return (
-        <View style={estilos.container}>
-            {/* Botão de alternância de tema */}
-            <TouchableOpacity 
-                style={estilos.toggleButton}
-                onPress={() => setDarkMode(!darkMode)}
-            >
-                <Text style={estilos.toggleButtonText}>
-                    {darkMode ? "☀️ Modo Claro" : "🌙 Modo Escuro"}
-                </Text>
-            </TouchableOpacity>
+        <View style={styles.container}>
+       
 
-            <View style={estilos.viewPrincipal}>
-                <View style={estilos.viewUm}>
+            <View style={styles.row}>
+                <View style={styles.item}>
                     <Image 
                         source={require('../../assets/IconTelefone.png')} 
-                        style={[estilos.IconT, { tintColor: darkMode ? "#BFD2F8" : null }]} 
+                        style={[styles.icon, { tintColor: styles.iconColor }]} 
                     />
-                    <Text style={estilos.texto}>EMERGÊNCIA</Text>
-                    <Text style={estilos.numero}>(11) 6818-1255</Text>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.label}>EMERGÊNCIA</Text>
+                        <Text style={styles.value}>(11) 6818-1255</Text>
+                    </View>
                 </View>
 
-                <View style={estilos.viewUm}>
+                <View style={styles.item}>
                     <Image 
                         source={require('../../assets/IconLocal.png')} 
-                        style={[estilos.IconL, { tintColor: darkMode ? "#BFD2F8" : null }]} 
+                        style={[styles.icon, { tintColor: styles.iconColor }]} 
                     />
-                    <Text style={estilos.texto}>LOCALIZAÇÃO</Text>
-                    <Text style={estilos.TextoDois}>Av. Marechal Tito, 340</Text>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.label}>LOCALIZAÇÃO</Text>
+                        <Text style={styles.value}>Av. Marechal Tito, 340</Text>
+                    </View>
                 </View>
             </View>
 
-            <View style={estilos.viewDois}>
+            <View style={styles.hours}>
                 <Image 
                     source={require('../../assets/IconRelogio.png')} 
-                    style={[estilos.iconR, { tintColor: darkMode ? "#BFD2F8" : null }]} 
+                    style={[styles.icon, { tintColor: styles.iconColor }]} 
                 />
-                <Text style={estilos.textoR}>HORÁRIO DE FUNCIONAMENTO</Text>
+                <Text style={styles.hoursLabel}>HORÁRIO: </Text>
+                <Text style={styles.hoursText}>09:00 - 20:00</Text>
             </View>
-
-            <Text style={estilos.TextoDoisH}>09:00 - 20:00 Todo dia</Text>
         </View>
     )
 }
@@ -65,76 +49,66 @@ export default function Header() {
 const getStyles = (darkMode) => StyleSheet.create({
     container: {
         backgroundColor: darkMode ? '#121212' : '#FFF',
+        padding: 16,
+        paddingBottom: 20,
+        alignItems: 'center',
     },
-    viewPrincipal: {
+    row: {
         flexDirection: 'row',
-        justifyContent: 'space-around'
+        justifyContent: 'space-between',
+        width: '100%',
+        marginTop: 16,
     },
-    viewUm: {
-        marginTop: 48,
+    item: {
         flexDirection: 'row',
-        alignItems: 'center'
+        alignItems: 'center',
+        width: '48%',
     },
-    IconT: {
-        width: 30,
-        height: 30,
-        marginLeft: 1,
+    textContainer: {
+        marginLeft: 8,
     },
-    texto: {
-        fontSize: 16,
-        color: darkMode ? "#BFD2F8" : "#1F2B6C",
-        marginLeft: 4,
+    icon: {
+        width: 24,
+        height: 24,
     },
-    numero: {
-        color: "#159EEC",
-        position: 'absolute',
-        left: 35,
-        top: 25,
+    iconColor: darkMode ? '#BFD2F8' : '#1F2B6C',
+    label: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: darkMode ? '#BFD2F8' : '#1F2B6C',
     },
-    IconL: {
-        width: 30,
-        height: 30,
-        marginLeft: 1,
+    value: {
+        fontSize: 14,
+        color: '#159EEC',
+        marginTop: 2,
     },
-    TextoDois: {
-        color: "#159EEC",
-        position: 'absolute',
-        left: 35,
-        top: 25,
+    hours: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 16,
+        justifyContent: 'center',
     },
-    viewDois: {
-        marginTop: 10,
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: 'row'
+    hoursLabel: {
+        fontSize: 14,
+        color: darkMode ? '#BFD2F8' : '#1F2B6C',
+        marginLeft: 8,
+        fontWeight: '600',
     },
-    iconR: {
-        width: 28,
-        height: 28,
-        marginRight: 5,
+    hoursText: {
+        fontSize: 14,
+        color: '#159EEC',
+        fontWeight: '500',
     },
-    TextoDoisH: {
-        color: "#159EEC",
-        textAlign: 'center',
-        marginTop: 5,
-    },
-    textoR: {
-        fontSize: 16,
-        color: darkMode ? "#BFD2F8" : "#1F2B6C",
-    },
-    // Estilo do botão de alternância
     toggleButton: {
         backgroundColor: darkMode ? '#1F2B6C' : '#159EEC',
-        padding: 8,
+        paddingVertical: 8,
+        paddingHorizontal: 16,
         borderRadius: 20,
-        marginTop: 10,
-        alignSelf: 'center',
-        width: '50%',
+        marginTop: 8,
     },
     toggleButtonText: {
-        color: darkMode ? '#BFD2F8' : '#FFFFFF',
+        color: '#FFF',
         fontWeight: 'bold',
-        textAlign: 'center',
         fontSize: 14,
     },
 });

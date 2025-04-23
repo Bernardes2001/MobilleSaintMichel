@@ -14,13 +14,23 @@ import { ThemeContext } from '../ThemeContext';
 export default function NavBar({ navigation }) {
   const [modalVisivel, setModalVisivel] = useState(false);
   const { darkMode, toggleTheme } = useContext(ThemeContext);
+  const estilos = getStyles(darkMode);
 
   const navegarPara = (tela) => {
     setModalVisivel(false);
     navigation.navigate(tela);
   };
 
-  const estilos = getStyles(darkMode);
+  // Opções do menu reutilizáveis
+  const menuOptions = [
+    { name: "HomePage", icon: "home", label: "Home" },
+    { name: "Perfil", icon: "account", label: "Perfil" },
+    { name: "Token", icon: "key", label: "Token" },
+    { name: "Sobre", icon: "information", label: "Sobre Nós" },
+    { name: "Servicos", icon: "tools", label: "Serviços" },
+    { name: "Especialidades", icon: "star", label: "Especialidades" },
+    { name: "Contato", icon: "email", label: "Contato" },
+  ];
 
   return (
     <View style={estilos.viewNav}>
@@ -29,20 +39,18 @@ export default function NavBar({ navigation }) {
 
       {/* Botões à direita */}
       <View style={estilos.rightButtons}>
-        {/* Botão de Toggle de Tema */}
         <TouchableOpacity onPress={toggleTheme} style={estilos.themeButton}>
           <Icon 
             name={darkMode ? "weather-sunny" : "weather-night"} 
             size={24} 
-            color={darkMode ? "#BFD2F8" : "#FFFFFF"} 
+            color={estilos.iconColor} 
           />
         </TouchableOpacity>
 
-        {/* Botão para abrir o menu */}
         <TouchableOpacity onPress={() => setModalVisivel(true)}>
           <Image
             source={require("../../assets/tracoOpcao.png")}
-            style={[estilos.opcao, { tintColor: darkMode ? "#BFD2F8" : "#FFFFFF" }]}
+            style={[estilos.opcao, { tintColor: estilos.iconColor }]}
           />
         </TouchableOpacity>
       </View>
@@ -71,68 +79,20 @@ export default function NavBar({ navigation }) {
 
                 {/* Opções do menu */}
                 <View style={estilos.filtro}>
-                  {/* Home */}
-                  <TouchableOpacity
-                    onPress={() => navegarPara("HomePage")}
-                    style={estilos.botaoModal}
-                  >
-                    <Icon name="home" size={25} color={darkMode ? "#BFD2F8" : "#1F2B6C"} />
-                    <Text style={estilos.textoModal}>Home</Text>
-                  </TouchableOpacity>
-
-                  {/* Perfil */}
-                  <TouchableOpacity
-                    onPress={() => navegarPara("Perfil")}
-                    style={estilos.botaoModal}
-                  >
-                    <Icon name="account" size={25} color={darkMode ? "#BFD2F8" : "#1F2B6C"} />
-                    <Text style={estilos.textoModal}>Perfil</Text>
-                  </TouchableOpacity>
-
-                  {/* Token */}
-                  <TouchableOpacity
-                    onPress={() => navegarPara("Token")}
-                    style={estilos.botaoModal}
-                  >
-                    <Icon name="key" size={25} color={darkMode ? "#BFD2F8" : "#1F2B6C"} />
-                    <Text style={estilos.textoModal}>Token</Text>
-                  </TouchableOpacity>
-
-                  {/* Sobre Nós */}
-                  <TouchableOpacity
-                    onPress={() => navegarPara("Sobre")}
-                    style={estilos.botaoModal}
-                  >
-                    <Icon name="information" size={25} color={darkMode ? "#BFD2F8" : "#1F2B6C"} />
-                    <Text style={estilos.textoModal}>Sobre Nós</Text>
-                  </TouchableOpacity>
-
-                  {/* Serviços */}
-                  <TouchableOpacity
-                    onPress={() => navegarPara("Servicos")}
-                    style={estilos.botaoModal}
-                  >
-                    <Icon name="tools" size={25} color={darkMode ? "#BFD2F8" : "#1F2B6C"} />
-                    <Text style={estilos.textoModal}>Serviços</Text>
-                  </TouchableOpacity>
-
-                  {/* Especialidades */}
-                  <TouchableOpacity
-                    onPress={() => navegarPara("Especialidades")}
-                    style={estilos.botaoModal}
-                  >
-                    <Icon name="star" size={25} color={darkMode ? "#BFD2F8" : "#1F2B6C"} />
-                    <Text style={estilos.textoModal}>Especialidades</Text>
-                  </TouchableOpacity>
-
-                  {/* Contato */}
-                  <TouchableOpacity
-                    onPress={() => navegarPara("Contato")}
-                    style={estilos.botaoModal}
-                  >
-                    <Icon name="email" size={25} color={darkMode ? "#BFD2F8" : "#1F2B6C"} />
-                    <Text style={estilos.textoModal}>Contato</Text>
-                  </TouchableOpacity>
+                  {menuOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.name}
+                      onPress={() => navegarPara(option.name)}
+                      style={estilos.botaoModal}
+                    >
+                      <Icon 
+                        name={option.icon} 
+                        size={25} 
+                        color={estilos.modalIconColor} 
+                      />
+                      <Text style={estilos.textoModal}>{option.label}</Text>
+                    </TouchableOpacity>
+                  ))}
 
                   {/* Botão de Toggle de Tema dentro do menu */}
                   <TouchableOpacity
@@ -142,7 +102,7 @@ export default function NavBar({ navigation }) {
                     <Icon 
                       name={darkMode ? "weather-sunny" : "weather-night"} 
                       size={25} 
-                      color={darkMode ? "#BFD2F8" : "#1F2B6C"} 
+                      color={estilos.modalIconColor} 
                     />
                     <Text style={estilos.textoModal}>
                       {darkMode ? "Modo Claro" : "Modo Escuro"}
@@ -171,7 +131,7 @@ export default function NavBar({ navigation }) {
 
 const getStyles = (darkMode) => StyleSheet.create({
   viewNav: {
-    backgroundColor: darkMode ? "#1F2B6C" : "#1F2B6C", // Mantém azul escuro mesmo no modo claro
+    backgroundColor: "#1F2B6C", // Mantido consistente em ambos os temas
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
@@ -197,6 +157,8 @@ const getStyles = (darkMode) => StyleSheet.create({
     height: 30,
     resizeMode: "contain",
   },
+  iconColor: darkMode ? "#BFD2F8" : "#FFFFFF",
+  modalIconColor: darkMode ? "#BFD2F8" : "#1F2B6C",
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -204,7 +166,7 @@ const getStyles = (darkMode) => StyleSheet.create({
   },
   modalContainer: {
     width: 250,
-    height: "80%", 
+    height: "80%",
     backgroundColor: darkMode ? "#1F2B6C" : "#BFD2F8",
     padding: 20,
     borderTopLeftRadius: 10,
