@@ -6,6 +6,7 @@ import { Calendar } from 'react-native-calendars';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
+
 const generoImagens = {
   Masculino: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
   Feminino: 'https://cdn-icons-png.flaticon.com/512/4140/4140047.png',

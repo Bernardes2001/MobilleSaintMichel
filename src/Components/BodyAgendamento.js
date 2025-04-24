@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 
+
 const Agendamento = () => {
   const [tipoPaciente, setTipoPaciente] = useState('');
   const [tipoDeExame, setTipoDeExame] = useState('');
