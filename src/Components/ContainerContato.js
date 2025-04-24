@@ -1,31 +1,71 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, ScrollView, Appearance } from "react-native";
+import React, { useContext } from "react";
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, ScrollView, Alert } from "react-native";
 import MapView, { Marker } from 'react-native-maps';
+import { ThemeContext } from '../ThemeContext';
+import axios from "axios";
 
 export default function ContainerContato() {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [assunto, setAssunto] = useState('');
-  const [mensagem, setMensagem] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    const colorScheme = Appearance.getColorScheme();
-    setDarkMode(colorScheme === 'dark');
-    
-    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-      setDarkMode(colorScheme === 'dark');
-    });
-    
-    return () => subscription.remove();
-  }, []);
+  const [nome, setNome] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [assunto, setAssunto] = React.useState('');
+  const [mensagem, setMensagem] = React.useState('');
+  const { darkMode, toggleTheme } = useContext(ThemeContext);
 
   const estilos = getStyles(darkMode);
 
+  const handleSubmit = async () => {
+    // Validação do nome
+    if (!nome || nome.trim().length < 3) {
+      Alert.alert("Nome inválido", "Por favor, insira um nome com pelo menos 3 caracteres.");
+      return;
+    }
+
+    // Validação do e-mail
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      Alert.alert("E-mail inválido", "Por favor, insira um endereço de e-mail válido.");
+      return;
+    }
+
+    // Validação do assunto
+    if (!assunto || assunto.trim().length < 5) {
+      Alert.alert("Assunto inválido", "O assunto deve ter pelo menos 5 caracteres.");
+      return;
+    }
+
+    // Validação da mensagem
+    if (!mensagem || mensagem.trim().length < 10) {
+      Alert.alert("Mensagem muito curta", "Por favor, escreva uma mensagem com pelo menos 10 caracteres.");
+      return;
+    }
+
+    if (mensagem.length > 500) {
+      Alert.alert("Mensagem muito longa", "A mensagem não pode exceder 500 caracteres.");
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://10.0.2.2:5000/contato', {
+        nome: nome.trim(),
+        email: email.trim(),
+        assunto: assunto.trim(),
+        mensagem: mensagem.trim(),
+      });
+
+      Alert.alert('Sucesso', 'Contato enviado com sucesso!');
+      setNome('');
+      setEmail('');
+      setAssunto('');
+      setMensagem('');
+
+    } catch (error) {
+      console.error('Erro ao enviar:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente mais tarde.');
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={estilos.scrollView}>
-      {/* Botão de alternância de tema */}
-     
       <MapView
         style={estilos.mapa}
         initialRegion={{
@@ -34,6 +74,7 @@ export default function ContainerContato() {
           latitudeDelta: 0.015,
           longitudeDelta: 0.0121,
         }}
+        customMapStyle={darkMode ? mapDarkStyle : []}
       >
         <Marker
           coordinate={{ latitude: -23.4990, longitude: -46.4110 }}
@@ -41,171 +82,192 @@ export default function ContainerContato() {
           description={"Localização do endereço"}
         />
       </MapView>
-      <TouchableOpacity 
-        style={estilos.toggleButton}
-        onPress={() => setDarkMode(!darkMode)}
-      >
-        <Text style={estilos.toggleButtonText}>
-          {darkMode ? "☀️ Modo Claro" : "🌙 Modo Escuro"}
-        </Text>
-      </TouchableOpacity>
-      <View style={estilos.viewP}>
-        <Text style={estilos.texto1}>ENTRE EM CONTATO</Text>
-        <Text style={estilos.texto2}>Contato</Text>
-        <View style={estilos.container}>
+
+
+
+      <View style={estilos.formContainer}>
+        <Text style={estilos.headerText}>ENTRE EM CONTATO</Text>
+        <Text style={estilos.titleText}>Contato</Text>
+
+        <View style={estilos.inputRow}>
           <TextInput
             style={estilos.input}
             placeholder="Nome"
-            placeholderTextColor={darkMode ? "#BFD2F8" : "#666"}
+            placeholderTextColor={estilos.placeholderColor}
             value={nome}
             onChangeText={setNome}
           />
           <TextInput
             style={estilos.input}
             placeholder="Email"
-            placeholderTextColor={darkMode ? "#BFD2F8" : "#666"}
+            placeholderTextColor={estilos.placeholderColor}
             value={email}
             onChangeText={setEmail}
+            keyboardType="email-address"
           />
         </View>
+
         <TextInput
-          style={estilos.inputA}
+          style={estilos.inputSingle}
           placeholder="Assunto"
-          placeholderTextColor={darkMode ? "#BFD2F8" : "#666"}
+          placeholderTextColor={estilos.placeholderColor}
           value={assunto}
           onChangeText={setAssunto}
         />
+
         <TextInput
-          style={estilos.inputM}
+          style={estilos.inputMessage}
           placeholder="Mensagem"
-          placeholderTextColor={darkMode ? "#BFD2F8" : "#666"}
+          placeholderTextColor={estilos.placeholderColor}
           value={mensagem}
           onChangeText={setMensagem}
           multiline
+          numberOfLines={4}
         />
-        <TouchableOpacity style={estilos.botao}>
-          <Text style={estilos.textoBotao}>Enviar</Text>
+
+        <TouchableOpacity
+          style={estilos.submitButton}
+          onPress={handleSubmit}
+        >
+          <Text style={estilos.submitButtonText}>Enviar</Text>
         </TouchableOpacity>
-        <View style={estilos.infoAdicional}>
-          <Text style={estilos.textoInfo}>Endereço: Av. Marechal Tito, 340</Text>
-          <Text style={estilos.textoInfo}>Telefone: (11) 6818-1255</Text>
-          <Text style={estilos.textoInfo}>Email: saintmichel@gmail.com</Text>
+
+        <View style={estilos.contactInfo}>
+          <Text style={estilos.contactText}>Endereço: Av. Marechal Tito, 340</Text>
+          <Text style={estilos.contactText}>Telefone: (11) 6818-1255</Text>
+          <Text style={estilos.contactText}>Email: saintmichel@gmail.com</Text>
         </View>
       </View>
     </ScrollView>
   );
 }
 
+const mapDarkStyle = [
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#212121"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      }
+    ]
+  }
+];
+
 const getStyles = (darkMode) => StyleSheet.create({
   scrollView: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: darkMode ? '#121212' : '#FFF',
+    flexGrow: 1,
+    backgroundColor: darkMode ? '#121212' : '#FFFFFF',
+    paddingBottom: 30,
   },
   mapa: {
     width: '100%',
-    height: 200,
+    height: 250,
   },
-  viewP: {
+  formContainer: {
     backgroundColor: darkMode ? '#1F2B6C' : '#BFD2F8',
-    width: '80%',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
+    width: '90%',
+    padding: 25,
+    borderRadius: 15,
     marginTop: 20,
+    alignSelf: 'center',
+    elevation: 5,
+    shadowColor: darkMode ? '#000' : '#1F2B6C',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  texto1: {
+  headerText: {
     fontSize: 20,
-    color: darkMode ? '#BFD2F8' : '#159EEC',
+    color: '#BFD2F8', // Mais claro (azul claro) em ambos os temas
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 5,
     fontWeight: 'bold',
   },
-  texto2: {
+  titleText: {
     fontSize: 25,
-    color: darkMode ? '#BFD2F8' : '#1F2B6C',
+    color: '#BFD2F8', // Mais claro (azul claro) em ambos os temas
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 25,
     fontWeight: 'bold',
   },
-  container: {
+  inputRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   input: {
     width: '48%',
-    height: 40,
-    borderColor: darkMode ? '#159EEC' : '#1F2B6C',
+    height: 50,
+    borderColor: '#BFD2F8', // Borda mais clara
     borderWidth: 1,
-    paddingHorizontal: 10,
-    backgroundColor: darkMode ? '#121212' : 'white',
-    borderRadius: 5,
-    color: darkMode ? '#BFD2F8' : '#000',
+    paddingHorizontal: 15,
+    backgroundColor: darkMode ? '#121212' : '#FFFFFF',
+    borderRadius: 8,
+    color: '#BFD2F8', // Texto mais claro (azul claro)
+    fontSize: 16,
   },
-  inputA: {
+  inputSingle: {
     width: '100%',
-    height: 40,
-    borderColor: darkMode ? '#159EEC' : '#1F2B6C',
+    height: 50,
+    borderColor: '#BFD2F8', // Borda mais clara
     borderWidth: 1,
-    paddingHorizontal: 10,
-    backgroundColor: darkMode ? '#121212' : 'white',
-    borderRadius: 5,
-    marginBottom: 10,
-    color: darkMode ? '#BFD2F8' : '#000',
+    paddingHorizontal: 15,
+    backgroundColor: darkMode ? '#121212' : '#FFFFFF',
+    borderRadius: 8,
+    marginBottom: 15,
+    color: '#BFD2F8', // Texto mais claro (azul claro)
+    fontSize: 16,
   },
-  inputM: {
+  inputMessage: {
     width: '100%',
-    height: 120,
-    borderColor: darkMode ? '#159EEC' : '#1F2B6C',
+    height: 150,
+    borderColor: '#BFD2F8', // Borda mais clara
     borderWidth: 1,
-    paddingHorizontal: 10,
-    backgroundColor: darkMode ? '#121212' : 'white',
-    borderRadius: 5,
+    paddingHorizontal: 15,
+    paddingTop: 15,
+    backgroundColor: darkMode ? '#121212' : '#FFFFFF',
+    borderRadius: 8,
     marginBottom: 20,
     textAlignVertical: 'top',
-    color: darkMode ? '#BFD2F8' : '#000',
+    color: '#BFD2F8', // Texto mais claro (azul claro)
+    fontSize: 16,
   },
-  botao: {
-    backgroundColor: darkMode ? '#159EEC' : '#1F2B6C',
-    padding: 15,
+  submitButton: {
+    backgroundColor: '#159EEC', // Azul médio para melhor contraste
+    padding: 16,
     width: '100%',
-    borderRadius: 5,
+    borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 25,
+    elevation: 3,
   },
-  textoBotao: {
-    color: darkMode ? '#1F2B6C' : 'white',
+  submitButtonText: {
+    color: '#FFFFFF', // Branco para melhor legibilidade
     fontSize: 18,
     fontWeight: 'bold',
   },
-  infoAdicional: {
+  contactInfo: {
     width: '100%',
-    padding: 15,
-    backgroundColor: darkMode ? '#121212' : '#FFF',
-    borderRadius: 5,
-    alignItems: 'center',
-    borderColor: darkMode ? '#159EEC' : '#1F2B6C',
+    padding: 20,
+    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
+    borderRadius: 8,
+    borderColor: '#BFD2F8', // Borda mais clara
     borderWidth: 1,
   },
-  textoInfo: {
+  contactText: {
     fontSize: 16,
-    color: darkMode ? '#BFD2F8' : '#1F2B6C',
-    marginBottom: 5,
-  },
-  toggleButton: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#159EEC',
-    padding: 10,
-    borderRadius: 20,
-    marginBottom: 20,
-    alignSelf: 'center',
-    width: '33%',
-    marginTop: 10
-  },
-  toggleButtonText: {
-    color: darkMode ? '#BFD2F8' : '#FFFFFF',
-    fontWeight: 'bold',
+    color: '#BFD2F8', // Texto mais claro (azul claro)
+    marginBottom: 10,
     textAlign: 'center',
   },
+  placeholderColor: '#BFD2F8',
 });

@@ -9,18 +9,37 @@ import {
   View,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+<<<<<<< HEAD
 
 import { ThemeContext } from '../ThemeContext'; 
+=======
+import { ThemeContext } from '../ThemeContext';
+>>>>>>> 993a1edccbefb01b87f819414c8de3326b5a68f7
 
 export default function NavBar({ navigation }) {
   const [modalVisivel, setModalVisivel] = useState(false);
   const { darkMode, toggleTheme } = useContext(ThemeContext);
+  const estilos = getStyles(darkMode);
 
   const navegarPara = (tela) => {
     setModalVisivel(false);
     navigation.navigate(tela);
   };
 
+<<<<<<< HEAD
+=======
+  // Opções do menu reutilizáveis
+  const menuOptions = [
+    { name: "HomePage", icon: "home", label: "Home" },
+    { name: "Perfil", icon: "account", label: "Perfil" },
+    { name: "Token", icon: "key", label: "Token" },
+    { name: "Sobre", icon: "information", label: "Sobre Nós" },
+    { name: "Servicos", icon: "tools", label: "Serviços" },
+    { name: "Especialidades", icon: "star", label: "Especialidades" },
+    { name: "Contato", icon: "email", label: "Contato" },
+  ];
+
+>>>>>>> 993a1edccbefb01b87f819414c8de3326b5a68f7
   return (
     <View style={[estilos.viewNav, darkMode && estilos.viewNavDark]}>
       {/* Logo */}
@@ -28,20 +47,31 @@ export default function NavBar({ navigation }) {
 
       {/* Botões à direita */}
       <View style={estilos.rightButtons}>
+<<<<<<< HEAD
         {/* Botão de alternância de tema */}
         <TouchableOpacity onPress={toggleTheme} style={estilos.themeButton}>
           <Icon 
             name={darkMode ? "weather-sunny" : "weather-night"} 
             size={25} 
             color={darkMode ? "#BFD2F8" : "#FFFFFF"} 
+=======
+        <TouchableOpacity onPress={toggleTheme} style={estilos.themeButton}>
+          <Icon 
+            name={darkMode ? "weather-sunny" : "weather-night"} 
+            size={24} 
+            color={estilos.iconColor} 
+>>>>>>> 993a1edccbefb01b87f819414c8de3326b5a68f7
           />
         </TouchableOpacity>
 
-        {/* Botão para abrir o menu */}
         <TouchableOpacity onPress={() => setModalVisivel(true)}>
           <Image
             source={require("../../assets/tracoOpcao.png")}
+<<<<<<< HEAD
             style={[estilos.opcao, darkMode && { tintColor: "#BFD2F8" }]}
+=======
+            style={[estilos.opcao, { tintColor: estilos.iconColor }]}
+>>>>>>> 993a1edccbefb01b87f819414c8de3326b5a68f7
           />
         </TouchableOpacity>
       </View>
@@ -70,6 +100,7 @@ export default function NavBar({ navigation }) {
 
                 {/* Opções do menu */}
                 <View style={estilos.filtro}>
+<<<<<<< HEAD
                   {/* Home */}
                   <TouchableOpacity
                     onPress={() => navegarPara("HomePage")}
@@ -131,6 +162,36 @@ export default function NavBar({ navigation }) {
                   >
                     <Icon name="email" size={25} color={darkMode ? "#BFD2F8" : "#1F2B6C"} />
                     <Text style={[estilos.textoModal, darkMode && estilos.textoModalDark]}>Contato</Text>
+=======
+                  {menuOptions.map((option) => (
+                    <TouchableOpacity
+                      key={option.name}
+                      onPress={() => navegarPara(option.name)}
+                      style={estilos.botaoModal}
+                    >
+                      <Icon 
+                        name={option.icon} 
+                        size={25} 
+                        color={estilos.modalIconColor} 
+                      />
+                      <Text style={estilos.textoModal}>{option.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+
+                  {/* Botão de Toggle de Tema dentro do menu */}
+                  <TouchableOpacity
+                    onPress={toggleTheme}
+                    style={estilos.botaoModal}
+                  >
+                    <Icon 
+                      name={darkMode ? "weather-sunny" : "weather-night"} 
+                      size={25} 
+                      color={estilos.modalIconColor} 
+                    />
+                    <Text style={estilos.textoModal}>
+                      {darkMode ? "Modo Claro" : "Modo Escuro"}
+                    </Text>
+>>>>>>> 993a1edccbefb01b87f819414c8de3326b5a68f7
                   </TouchableOpacity>
                 </View>
 
@@ -155,7 +216,11 @@ export default function NavBar({ navigation }) {
 
 const estilos = StyleSheet.create({
   viewNav: {
+<<<<<<< HEAD
     backgroundColor: "#1F2B6C",
+=======
+    backgroundColor: "#1F2B6C", // Mantido consistente em ambos os temas
+>>>>>>> 993a1edccbefb01b87f819414c8de3326b5a68f7
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
@@ -183,6 +248,8 @@ const estilos = StyleSheet.create({
     height: 30,
     resizeMode: "contain",
   },
+  iconColor: darkMode ? "#BFD2F8" : "#FFFFFF",
+  modalIconColor: darkMode ? "#BFD2F8" : "#1F2B6C",
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -190,8 +257,13 @@ const estilos = StyleSheet.create({
   },
   modalContainer: {
     width: 250,
+<<<<<<< HEAD
     height: "80%", 
     backgroundColor: "#BFD2F8",
+=======
+    height: "80%",
+    backgroundColor: darkMode ? "#1F2B6C" : "#BFD2F8",
+>>>>>>> 993a1edccbefb01b87f819414c8de3326b5a68f7
     padding: 20,
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
