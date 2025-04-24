@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-
 import { ThemeContext } from '../ThemeContext';
 
 export default function NavBar({ navigation }) {
@@ -22,8 +21,6 @@ export default function NavBar({ navigation }) {
     navigation.navigate(tela);
   };
 
-
-  // Opções do menu reutilizáveis
   const menuOptions = [
     { name: "HomePage", icon: "home", label: "Home" },
     { name: "Perfil", icon: "account", label: "Perfil" },
@@ -35,81 +32,79 @@ export default function NavBar({ navigation }) {
   ];
 
   return (
-    <View style={[estilos.viewNav, darkMode && estilos.viewNavDark]}>
-      {/* Logo */}
-      <Image source={require("../../assets/Logo.png")} style={estilos.logo} />
+    <View style={estilos.viewNav}>
+      {/* Logo - Using the same logo with tint color adjustment */}
+      <Image 
+        source={require("../../assets/Logo.png")} 
+        style={[estilos.logo, { tintColor: darkMode ? "#BFD2F8" : null }]} 
+      />
 
-      {/* Botões à direita */}
+      {/* Right buttons */}
       <View style={estilos.rightButtons}>
-        {/* Botão de alternância de tema */}
         <TouchableOpacity onPress={toggleTheme} style={estilos.themeButton}>
-          <Icon
-            name={darkMode ? "weather-sunny" : "weather-night"}
-            size={25}
-            color={darkMode ? "#BFD2F8" : "#FFFFFF"}
-
+          <Icon 
+            name={darkMode ? "weather-sunny" : "weather-night"} 
+            size={24} 
+            color={estilos.iconColor} 
           />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => setModalVisivel(true)}>
           <Image
             source={require("../../assets/tracoOpcao.png")}
-            style={[estilos.opcao, darkMode && { tintColor: "#BFD2F8" }]}
-
+            style={[estilos.opcao, { tintColor: estilos.iconColor }]}
           />
         </TouchableOpacity>
-      </View >
+      </View>
 
-      {/* Modal do menu */}
-      < Modal
+      {/* Menu modal */}
+      <Modal
         visible={modalVisivel}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setModalVisivel(false)
-        }
+        onRequestClose={() => setModalVisivel(false)}
       >
         <TouchableWithoutFeedback onPress={() => setModalVisivel(false)}>
           <View style={estilos.overlay}>
             <TouchableWithoutFeedback>
-              <View style={[estilos.modalContainer, darkMode && estilos.modalContainerDark]}>
-                {/* Cabeçalho do modal */}
-                <View style={[estilos.janelaTopo, darkMode && estilos.janelaTopoDark]}>
+              <View style={estilos.modalContainer}>
+                {/* Modal header */}
+                <View style={estilos.janelaTopo}>
                   <Image
                     source={require("../../assets/Logo.png")}
-                    style={estilos.logoJanela}
+                    style={[estilos.logoJanela, { tintColor: "#FFFFFF" }]}
                   />
                   <TouchableOpacity onPress={() => setModalVisivel(false)}>
-                    <Icon name="close" size={25} color={darkMode ? "#BFD2F8" : "#FFFFFF"} />
+                    <Icon name="close" size={25} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
 
-                {/* Opções do menu */}
+                {/* Menu options */}
                 <View style={estilos.filtro}>
-
                   {menuOptions.map((option) => (
                     <TouchableOpacity
                       key={option.name}
                       onPress={() => navegarPara(option.name)}
                       style={estilos.botaoModal}
                     >
-                      <Icon
-                        name={option.icon}
-                        size={25}
-                        color={estilos.modalIconColor}
+                      <Icon 
+                        name={option.icon} 
+                        size={25} 
+                        color={estilos.modalIconColor} 
                       />
                       <Text style={estilos.textoModal}>{option.label}</Text>
                     </TouchableOpacity>
                   ))}
 
-                  {/* Botão de Toggle de Tema dentro do menu */}
+                  {/* Theme toggle inside menu */}
                   <TouchableOpacity
                     onPress={toggleTheme}
                     style={estilos.botaoModal}
                   >
-                    <Icon
-                      name={darkMode ? "weather-sunny" : "weather-night"}
-                      size={25}
-                      color={estilos.modalIconColor}
+                    <Icon 
+                      name={darkMode ? "weather-sunny" : "weather-night"} 
+                      size={25} 
+                      color={estilos.modalIconColor} 
                     />
                     <Text style={estilos.textoModal}>
                       {darkMode ? "Modo Claro" : "Modo Escuro"}
@@ -117,41 +112,35 @@ export default function NavBar({ navigation }) {
                   </TouchableOpacity>
                 </View>
 
-                {/* Botão de Agendamentos */}
+                {/* Appointments button */}
                 <View style={estilos.viewAgenda}>
                   <TouchableOpacity
                     onPress={() => navegarPara("Agendamentos")}
-                    style={[estilos.botaoAgenda, darkMode && estilos.botaoAgendaDark]}
+                    style={estilos.botaoAgenda}
                   >
                     <Icon name="calendar" size={25} color="#FFFFFF" />
                     <Text style={estilos.textoAgenda}>Agendamentos</Text>
                   </TouchableOpacity>
                 </View>
-              </View >
-            </TouchableWithoutFeedback >
-          </View >
-        </TouchableWithoutFeedback >
-      </Modal >
-    </View >
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    </View>
   );
 }
 
 const getStyles = (darkMode) => StyleSheet.create({
   viewNav: {
-    backgroundColor: darkMode ? "#121212" : "#1F2B6C", // Black in dark mode
+    backgroundColor: darkMode ? "#121212" : "#1F2B6C", // Black in dark mode, blue in light
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
     height: 70,
     alignItems: "center",
     paddingHorizontal: 15,
-    borderBottomWidth: darkMode ? 0 : 1,
-    borderBottomColor: darkMode ? "transparent" : "#159EEC",
-    elevation: 5,
-    shadowColor: darkMode ? "#000" : "#1F2B6C",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    elevation: 3,
   },
   logo: {
     width: 100,
@@ -161,7 +150,7 @@ const getStyles = (darkMode) => StyleSheet.create({
   rightButtons: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 20,
+    gap: 15,
   },
   themeButton: {
     padding: 5,
@@ -179,26 +168,26 @@ const getStyles = (darkMode) => StyleSheet.create({
     alignItems: "flex-end",
   },
   modalContainer: {
-    width: 280,
-    height: "85%",
+    width: 250,
+    height: "80%", 
     backgroundColor: darkMode ? "#1E1E1E" : "#BFD2F8",
     padding: 20,
-    borderTopLeftRadius: 15,
-    borderBottomLeftRadius: 15,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 10,
+    shadowRadius: 2,
+    elevation: 5,
   },
   janelaTopo: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: darkMode ? "#121212" : "#1F2B6C",
-    padding: 15,
-    borderTopLeftRadius: 15,
-    borderBottomLeftRadius: 15,
+    padding: 10,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
   },
   logoJanela: {
     width: 80,
@@ -206,39 +195,35 @@ const getStyles = (darkMode) => StyleSheet.create({
     resizeMode: "contain",
   },
   filtro: {
-    marginTop: 25,
+    marginTop: 20,
   },
   botaoModal: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    marginVertical: 15,
   },
   textoModal: {
-    fontSize: 18,
+    fontSize: 20,
     color: darkMode ? "#BFD2F8" : "#1F2B6C",
-    fontWeight: "600",
+    fontWeight: "bold",
     marginLeft: 15,
   },
   viewAgenda: {
-    marginTop: 25,
+    marginTop: 20,
     alignItems: "center",
   },
   botaoAgenda: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: darkMode ? "#159EEC" : "#1F2B6C",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    elevation: 3,
+    borderRadius: 50,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   textoAgenda: {
-    fontSize: 18,
+    fontSize: 19,
     color: "#FFFFFF",
     fontWeight: "bold",
-    marginLeft: 12,
+    marginLeft: 10,
   },
 });
