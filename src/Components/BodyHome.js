@@ -79,7 +79,7 @@ const getStyles = (darkMode) => StyleSheet.create({
         lineHeight: 24,
     },
     caixaApresentacao: {
-        backgroundColor: darkMode ? '#1F2B6C' : '#E8F0FE',
+        backgroundColor: darkMode ? '#1E1E2E' : '#E8F0FE',
         padding: 15,
         borderRadius: 10,
         marginVertical: 15,

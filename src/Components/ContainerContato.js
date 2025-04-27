@@ -1,105 +1,114 @@
 import React, { useContext } from "react";
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, ScrollView, Alert, Linking } from "react-native";
 import MapView, { Marker } from 'react-native-maps';
 import { ThemeContext } from '../ThemeContext';
 import axios from "axios";
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ContainerContato() {
   const [nome, setNome] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [assunto, setAssunto] = React.useState('');
   const [mensagem, setMensagem] = React.useState('');
-  const { darkMode, toggleTheme } = useContext(ThemeContext);
+  const { darkMode } = useContext(ThemeContext);
 
   const estilos = getStyles(darkMode);
 
+  // Funções de interação
+  const handleEmailPress = () => {
+    Linking.openURL('mailto:saintmichelhospital@gmail.com?subject=Contato%20via%20App');
+  };
+
+  const handlePhonePress = () => {
+    Linking.openURL('tel:+551168181255');
+  };
+
+  const handleAddressPress = () => {
+    Linking.openURL('https://www.google.com/maps/search/?api=1&query=Av.%20Marechal%20Tito,%20340');
+  };
+
+  const handleInstagramPress = () => {
+    Linking.openURL('instagram://user?username=hospital.saintmichel').catch(() => {
+      Linking.openURL('https://www.instagram.com/hospital.saintmichel');
+    });
+  };
+
   const handleSubmit = async () => {
-    // Validação do nome
     if (!nome || nome.trim().length < 3) {
       Alert.alert("Nome inválido", "Por favor, insira um nome com pelo menos 3 caracteres.");
       return;
     }
 
-    // Validação do e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       Alert.alert("E-mail inválido", "Por favor, insira um endereço de e-mail válido.");
       return;
     }
 
-    // Validação do assunto
     if (!assunto || assunto.trim().length < 5) {
       Alert.alert("Assunto inválido", "O assunto deve ter pelo menos 5 caracteres.");
       return;
     }
 
-    // Validação da mensagem
     if (!mensagem || mensagem.trim().length < 10) {
       Alert.alert("Mensagem muito curta", "Por favor, escreva uma mensagem com pelo menos 10 caracteres.");
       return;
     }
 
-    if (mensagem.length > 500) {
-      Alert.alert("Mensagem muito longa", "A mensagem não pode exceder 500 caracteres.");
-      return;
-    }
-
     try {
-      const response = await axios.post('http://10.0.2.2:5000/contato', {
+      await axios.post('http://10.0.2.2:5000/contato', {
         nome: nome.trim(),
         email: email.trim(),
         assunto: assunto.trim(),
         mensagem: mensagem.trim(),
       });
 
-      Alert.alert('Sucesso', 'Contato enviado com sucesso!');
+      Alert.alert('Sucesso', 'Mensagem enviada com sucesso!');
       setNome('');
       setEmail('');
       setAssunto('');
       setMensagem('');
-
     } catch (error) {
       console.error('Erro ao enviar:', error);
-      Alert.alert('Erro', 'Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente mais tarde.');
+      Alert.alert('Erro', 'Não foi possível enviar sua mensagem. Por favor, tente novamente.');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={estilos.scrollView}>
-      <MapView
-        style={estilos.mapa}
-        initialRegion={{
-          latitude: -23.4990,
-          longitude: -46.4110,
-          latitudeDelta: 0.015,
-          longitudeDelta: 0.0121,
-        }}
-        customMapStyle={darkMode ? mapDarkStyle : []}
-      >
-        <Marker
-          coordinate={{ latitude: -23.4990, longitude: -46.4110 }}
-          title={"Av. Marechal Tito, 340"}
-          description={"Localização do endereço"}
-        />
-      </MapView>
-
-
+      <View style={[estilos.mapaContainer, darkMode && estilos.mapaContainerDark]}>
+        <MapView
+          style={estilos.mapa}
+          initialRegion={{
+            latitude: -23.4990,
+            longitude: -46.4110,
+            latitudeDelta: 0.015,
+            longitudeDelta: 0.0121,
+          }}
+        >
+          <Marker
+            coordinate={{ latitude: -23.4990, longitude: -46.4110 }}
+            title="Hospital Saint Michel"
+            description="Av. Marechal Tito, 340"
+          />
+        </MapView>
+      </View>
 
       <View style={estilos.formContainer}>
         <Text style={estilos.headerText}>ENTRE EM CONTATO</Text>
-        <Text style={estilos.titleText}>Contato</Text>
+        <Text style={estilos.subtitleText}>Envie sua mensagem ou utilize nossos canais diretos</Text>
 
         <View style={estilos.inputRow}>
           <TextInput
             style={estilos.input}
-            placeholder="Nome"
+            placeholder="Nome completo"
             placeholderTextColor={estilos.placeholderColor}
             value={nome}
             onChangeText={setNome}
           />
           <TextInput
             style={estilos.input}
-            placeholder="Email"
+            placeholder="E-mail"
             placeholderTextColor={estilos.placeholderColor}
             value={email}
             onChangeText={setEmail}
@@ -109,7 +118,7 @@ export default function ContainerContato() {
 
         <TextInput
           style={estilos.inputSingle}
-          placeholder="Assunto"
+          placeholder="Assunto da mensagem"
           placeholderTextColor={estilos.placeholderColor}
           value={assunto}
           onChangeText={setAssunto}
@@ -117,7 +126,7 @@ export default function ContainerContato() {
 
         <TextInput
           style={estilos.inputMessage}
-          placeholder="Mensagem"
+          placeholder="Escreva sua mensagem aqui..."
           placeholderTextColor={estilos.placeholderColor}
           value={mensagem}
           onChangeText={setMensagem}
@@ -125,78 +134,83 @@ export default function ContainerContato() {
           numberOfLines={4}
         />
 
-        <TouchableOpacity
-          style={estilos.submitButton}
-          onPress={handleSubmit}
-        >
-          <Text style={estilos.submitButtonText}>Enviar</Text>
+        <TouchableOpacity style={estilos.submitButton} onPress={handleSubmit}>
+          <Text style={estilos.submitButtonText}>ENVIAR MENSAGEM</Text>
         </TouchableOpacity>
 
         <View style={estilos.contactInfo}>
-          <Text style={estilos.contactText}>Endereço: Av. Marechal Tito, 340</Text>
-          <Text style={estilos.contactText}>Telefone: (11) 6818-1255</Text>
-          <Text style={estilos.contactText}>Email: saintmichel@gmail.com</Text>
+          <Text style={estilos.contactTitle}>OUTROS CANAIS DE CONTATO</Text>
+          
+          <TouchableOpacity onPress={handleAddressPress} style={estilos.contactItem}>
+            <Ionicons name="location" size={20} color={estilos.contactIcon.color} />
+            <Text style={estilos.contactText}>Av. Marechal Tito, 340 - São Paulo/SP</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity onPress={handlePhonePress} style={estilos.contactItem}>
+            <Ionicons name="call" size={20} color={estilos.contactIcon.color} />
+            <Text style={estilos.contactText}>(11) 6818-1255</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity onPress={handleEmailPress} style={estilos.contactItem}>
+            <Ionicons name="mail" size={20} color={estilos.contactIcon.color} />
+            <Text style={estilos.contactText}>saintmichelhospital@gmail.com</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity onPress={handleInstagramPress} style={estilos.contactItem}>
+            <Ionicons name="logo-instagram" size={20} color={estilos.contactIcon.color} />
+            <Text style={estilos.contactText}>@hospital.saintmichel</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
   );
 }
 
-const mapDarkStyle = [
-  {
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#212121"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#757575"
-      }
-    ]
-  }
-];
-
 const getStyles = (darkMode) => StyleSheet.create({
   scrollView: {
     flexGrow: 1,
-    backgroundColor: darkMode ? '#121212' : '#FFFFFF',
+    backgroundColor: darkMode ? '#121212' : '#F5F5F5',
     paddingBottom: 30,
+  },
+  mapaContainer: {
+    width: '100%',
+    height: 250,
+    backgroundColor: '#FFFFFF',
+  },
+  mapaContainerDark: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   mapa: {
     width: '100%',
-    height: 250,
+    height: '100%',
   },
   formContainer: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#BFD2F8',
+    backgroundColor: darkMode ? '#1E1E2E' : '#FFFFFF',
     width: '90%',
     padding: 25,
     borderRadius: 15,
     marginTop: 20,
     alignSelf: 'center',
     elevation: 5,
-    shadowColor: darkMode ? '#000' : '#1F2B6C',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   headerText: {
-    fontSize: 20,
-    color: '#BFD2F8', // Mais claro (azul claro) em ambos os temas
+    fontSize: 22,
+    color: darkMode ? '#FFFFFF' : '#1F2B6C',
     textAlign: 'center',
     marginBottom: 5,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
-  titleText: {
-    fontSize: 25,
-    color: '#BFD2F8', // Mais claro (azul claro) em ambos os temas
+  subtitleText: {
+    fontSize: 14,
+    color: darkMode ? '#BBBBBB' : '#666666',
     textAlign: 'center',
     marginBottom: 25,
-    fontWeight: 'bold',
+    fontWeight: '400',
   },
   inputRow: {
     flexDirection: 'row',
@@ -207,42 +221,42 @@ const getStyles = (darkMode) => StyleSheet.create({
   input: {
     width: '48%',
     height: 50,
-    borderColor: '#BFD2F8', // Borda mais clara
     borderWidth: 1,
+    borderColor: darkMode ? '#333344' : '#DDDDDD',
     paddingHorizontal: 15,
-    backgroundColor: darkMode ? '#121212' : '#FFFFFF',
+    backgroundColor: darkMode ? '#252538' : '#FFFFFF',
     borderRadius: 8,
-    color: '#BFD2F8', // Texto mais claro (azul claro)
-    fontSize: 16,
+    color: darkMode ? '#E0E0E0' : '#333333',
+    fontSize: 15,
   },
   inputSingle: {
     width: '100%',
     height: 50,
-    borderColor: '#BFD2F8', // Borda mais clara
     borderWidth: 1,
+    borderColor: darkMode ? '#333344' : '#DDDDDD',
     paddingHorizontal: 15,
-    backgroundColor: darkMode ? '#121212' : '#FFFFFF',
+    backgroundColor: darkMode ? '#252538' : '#FFFFFF',
     borderRadius: 8,
     marginBottom: 15,
-    color: '#BFD2F8', // Texto mais claro (azul claro)
-    fontSize: 16,
+    color: darkMode ? '#E0E0E0' : '#333333',
+    fontSize: 15,
   },
   inputMessage: {
     width: '100%',
     height: 150,
-    borderColor: '#BFD2F8', // Borda mais clara
     borderWidth: 1,
+    borderColor: darkMode ? '#333344' : '#DDDDDD',
     paddingHorizontal: 15,
     paddingTop: 15,
-    backgroundColor: darkMode ? '#121212' : '#FFFFFF',
+    backgroundColor: darkMode ? '#252538' : '#FFFFFF',
     borderRadius: 8,
     marginBottom: 20,
     textAlignVertical: 'top',
-    color: '#BFD2F8', // Texto mais claro (azul claro)
-    fontSize: 16,
+    color: darkMode ? '#E0E0E0' : '#333333',
+    fontSize: 15,
   },
   submitButton: {
-    backgroundColor: '#159EEC', // Azul médio para melhor contraste
+    backgroundColor: '#1F2B6C',
     padding: 16,
     width: '100%',
     borderRadius: 8,
@@ -251,23 +265,39 @@ const getStyles = (darkMode) => StyleSheet.create({
     elevation: 3,
   },
   submitButtonText: {
-    color: '#FFFFFF', // Branco para melhor legibilidade
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   contactInfo: {
     width: '100%',
     padding: 20,
-    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
+    backgroundColor: darkMode ? '#252538' : '#F8F8F8',
     borderRadius: 8,
-    borderColor: '#BFD2F8', // Borda mais clara
     borderWidth: 1,
+    borderColor: darkMode ? '#333344' : '#EEEEEE',
   },
-  contactText: {
+  contactTitle: {
     fontSize: 16,
-    color: '#BFD2F8', // Texto mais claro (azul claro)
-    marginBottom: 10,
+    color: darkMode ? '#BBBBBB' : '#666666',
+    fontWeight: '600',
+    marginBottom: 15,
     textAlign: 'center',
   },
-  placeholderColor: '#BFD2F8',
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  contactIcon: {
+    color: darkMode ? '#7A8BFF' : '#1F2B6C',
+  },
+  contactText: {
+    fontSize: 15,
+    color: darkMode ? '#E0E0E0' : '#444444',
+    marginLeft: 12,
+    flexShrink: 1,
+  },
+  placeholderColor: darkMode ? '#666677' : '#999999',
 });

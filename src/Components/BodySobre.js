@@ -1,19 +1,34 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Linking, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Linking, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { ThemeContext } from '../ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const BodySobre = () => {
-  const { darkMode, toggleTheme } = useContext(ThemeContext);
+  const { darkMode } = useContext(ThemeContext);
   const estilos = getStyles(darkMode);
 
-  const abrirLink = (url) => {
-    Linking.openURL(url);
+  // Funções de interação
+  const handleEmailPress = () => {
+    Linking.openURL('mailto:saintmichelhospital@gmail.com?subject=Contato%20via%20App');
+  };
+
+  const handlePhonePress = () => {
+    Linking.openURL('tel:+551168181255');
+  };
+
+  const handleAddressPress = () => {
+    Linking.openURL('https://www.google.com/maps/search/?api=1&query=Av.%20Marechal%20Tito,%20340');
+  };
+
+  const handleInstagramPress = () => {
+    Linking.openURL('instagram://user?username=hospital.saintmichel').catch(() => {
+      Linking.openURL('https://www.instagram.com/hospital.saintmichel');
+    });
   };
 
   return (
     <ScrollView contentContainerStyle={estilos.container}>
-    
       <View style={estilos.cabecalho}>
         <Image
           source={darkMode ? require('../../assets/Logo.png') : require('../../assets/LogoAzul.png')}
@@ -36,11 +51,6 @@ const BodySobre = () => {
           para todos os nossos pacientes. Acreditamos que cuidar de você é uma missão divina, 
           e estamos comprometidos em oferecer um serviço que reflete esse compromisso.
         </Text>
-        <Text style={estilos.texto}>
-          No Saint Michel, você encontrará uma ampla gama de especialidades médicas, 
-          equipamentos de última geração e um atendimento personalizado, tudo pensado 
-          para garantir o seu conforto e a sua recuperação.
-        </Text>
       </View>
 
       <View style={estilos.servicos}>
@@ -50,67 +60,49 @@ const BodySobre = () => {
         <Text style={estilos.itemServico}>- Emergência</Text>
         <Text style={estilos.itemServico}>- Atendimento Domiciliar</Text>
         <Text style={estilos.itemServico}>- Pequenas Cirurgias</Text>
-        <Text style={estilos.itemServico}>- Cardiologia</Text>
-        <Text style={estilos.itemServico}>- Dermatologia</Text>
-        <Text style={estilos.itemServico}>- Ortopedia</Text>
-        <Text style={estilos.itemServico}>- Pediatria</Text>
-        <Text style={estilos.itemServico}>- Ginecologia</Text>
-        <Text style={estilos.itemServico}>- Neurologia</Text>
-        <Text style={estilos.itemServico}>- E todas as outras especialidades médicas</Text>
       </View>
 
-      <View style={estilos.depoimentos}>
-        <Text style={estilos.titulo}>Depoimentos</Text>
-        <Text style={estilos.textoDepoimento}>
-          "Excelente atendimento! Equipe muito profissional e atenciosa." - Maria S.
-        </Text>
-        <Text style={estilos.textoDepoimento}>
-          "Melhor experiência hospitalar que já tive. Recomendo a todos!" - João P.
-        </Text>
-      </View>
-
-      <View style={estilos.galeria}>
-        <Text style={estilos.titulo}>Galeria</Text>
-        <Image
-          source={require('../../assets/hospital.jpeg')} 
-          style={estilos.imagemGaleria}
-        />
-        <Image
-          source={require('../../assets/recepcaoHospital.jpeg')} 
-          style={estilos.imagemGaleria}
-        />
-      </View>
-
-      <View style={estilos.mapaContainer}>
+      <View style={[estilos.mapaContainer, darkMode && estilos.mapaContainerDark]}>
         <Text style={estilos.titulo}>Localização</Text>
-        <MapView
-          style={estilos.mapa}
-          initialRegion={{
-            latitude: -23.5505,
-            longitude: -46.6333,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          }}
-        >
-          <Marker
-            coordinate={{ latitude: -23.5505, longitude: -46.6333 }}
-            title="Saint Michel"
-            description="Cuidar de você é nossa missão divina"
-          />
-        </MapView>
+        <TouchableOpacity onPress={handleAddressPress}>
+          <MapView
+            style={estilos.mapa}
+            initialRegion={{
+              latitude: -23.4990,
+              longitude: -46.4110,
+              latitudeDelta: 0.015,
+              longitudeDelta: 0.0121,
+            }}
+          >
+            <Marker
+              coordinate={{ latitude: -23.4990, longitude: -46.4110 }}
+              title="Hospital Saint Michel"
+              description="Av. Marechal Tito, 340"
+            />
+          </MapView>
+          <Text style={estilos.enderecoTexto}>Av. Marechal Tito, 340 - São Paulo/SP</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={estilos.contato}>
         <Text style={estilos.titulo}>Contato</Text>
-        <TouchableOpacity onPress={() => abrirLink('tel:+5511999999999')}>
-          <Text style={estilos.linkContato}>Ligue para nós: (11) 99999-9999</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => abrirLink('mailto:contato@saintmichel.com')}>
-          <Text style={estilos.linkContato}>Envie um e-mail: contato@saintmichel.com</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => abrirLink('https://www.saintmichel.com')}>
-          <Text style={estilos.linkContato}>Visite nosso site: www.saintmichel.com</Text>
-        </TouchableOpacity>
+        
+        <View style={estilos.contactInfo}>
+          <TouchableOpacity onPress={handlePhonePress} style={estilos.contactItem}>
+            <Ionicons name="call" size={20} color={estilos.contactIcon.color} />
+            <Text style={estilos.contactText}>(11) 6818-1255</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity onPress={handleEmailPress} style={estilos.contactItem}>
+            <Ionicons name="mail" size={20} color={estilos.contactIcon.color} />
+            <Text style={estilos.contactText}>saintmichelhospital@gmail.com</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity onPress={handleInstagramPress} style={estilos.contactItem}>
+            <Ionicons name="logo-instagram" size={20} color={estilos.contactIcon.color} />
+            <Text style={estilos.contactText}>@hospital.saintmichel</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );
@@ -119,13 +111,13 @@ const BodySobre = () => {
 const getStyles = (darkMode) => StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: darkMode ? '#121212' : '#f9f9f9',
-    padding: 20,
-    paddingBottom: 40,
+    backgroundColor: darkMode ? '#121212' : '#F5F5F5',
+    paddingBottom: 30,
   },
   cabecalho: {
     alignItems: 'center',
     marginBottom: 30,
+    paddingTop: 20,
   },
   logo: {
     width: 150,
@@ -140,132 +132,113 @@ const getStyles = (darkMode) => StyleSheet.create({
     fontStyle: 'italic',
   },
   conteudo: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
-    borderRadius: 10,
-    padding: 20,
+    backgroundColor: darkMode ? '#1E1E2E' : '#FFFFFF',
+    width: '90%',
+    borderRadius: 15,
+    padding: 25,
     marginBottom: 20,
-    shadowColor: '#000',
+    alignSelf: 'center',
+    elevation: 5,
+    shadowColor: darkMode ? '#000' : '#1F2B6C',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: darkMode ? 0.1 : 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
   },
   servicos: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
-    borderRadius: 10,
-    padding: 20,
+    backgroundColor: darkMode ? '#1E1E2E' : '#FFFFFF',
+    width: '90%',
+    borderRadius: 15,
+    padding: 25,
     marginBottom: 20,
-    shadowColor: '#000',
+    alignSelf: 'center',
+    elevation: 5,
+    shadowColor: darkMode ? '#000' : '#1F2B6C',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: darkMode ? 0.1 : 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
-  },
-  depoimentos: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: darkMode ? 0.1 : 0.05,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  galeria: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: darkMode ? 0.1 : 0.05,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  mapaContainer: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: darkMode ? 0.1 : 0.05,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  contato: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: darkMode ? 0.1 : 0.05,
-    shadowRadius: 4,
-    elevation: 3,
   },
   titulo: {
-    fontSize: 24,
-    color: darkMode ? '#BFD2F8' : '#1F2B6C',
-    fontWeight: 'bold',
-    marginBottom: 15,
+    fontSize: 22,
+    color: darkMode ? '#FFFFFF' : '#1F2B6C',
     textAlign: 'center',
+    marginBottom: 15,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   texto: {
-    fontSize: 16,
-    color: darkMode ? '#BFD2F8' : '#333333',
+    fontSize: 15,
+    color: darkMode ? '#E0E0E0' : '#333333',
     lineHeight: 24,
     marginBottom: 15,
     textAlign: 'justify',
   },
   itemServico: {
-    fontSize: 16,
-    color: darkMode ? '#BFD2F8' : '#333333',
+    fontSize: 15,
+    color: darkMode ? '#E0E0E0' : '#333333',
     lineHeight: 24,
     marginBottom: 10,
   },
-  textoDepoimento: {
-    fontSize: 16,
-    color: darkMode ? '#BFD2F8' : '#333333',
-    lineHeight: 24,
-    marginBottom: 10,
-    fontStyle: 'italic',
-    textAlign: 'center',
+  mapaContainer: {
+    width: '90%',
+    height: 250,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    marginBottom: 20,
+    alignSelf: 'center',
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: darkMode ? '#000' : '#1F2B6C',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  imagemGaleria: {
-    width: '100%',
-    height: 200,
-    borderRadius: 10,
-    marginBottom: 10,
-    resizeMode: 'cover',
+  mapaContainerDark: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   mapa: {
     width: '100%',
-    height: 200,
-    borderRadius: 10,
+    height: '100%',
   },
-  linkContato: {
-    fontSize: 16,
-    color: darkMode ? '#159EEC' : '#1F2B6C',
-    lineHeight: 24,
-    marginBottom: 10,
-    textDecorationLine: 'underline',
+  enderecoTexto: {
+    fontSize: 14,
+    color: darkMode ? '#BBBBBB' : '#666666',
     textAlign: 'center',
+    paddingVertical: 10,
   },
-  toggleButton: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#159EEC',
-    padding: 12,
-    borderRadius: 25,
+  contato: {
+    backgroundColor: darkMode ? '#1E1E2E' : '#FFFFFF',
+    width: '90%',
+    borderRadius: 15,
+    padding: 25,
     marginBottom: 20,
     alignSelf: 'center',
-    width: '40%',
+    elevation: 5,
+    shadowColor: darkMode ? '#000' : '#1F2B6C',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  toggleButtonText: {
-    color: darkMode ? '#BFD2F8' : '#FFFFFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 16,
+  contactInfo: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: darkMode ? '#252538' : '#F8F8F8',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: darkMode ? '#333344' : '#EEEEEE',
+  },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  contactIcon: {
+    color: darkMode ? '#7A8BFF' : '#1F2B6C',
+  },
+  contactText: {
+    fontSize: 15,
+    color: darkMode ? '#E0E0E0' : '#444444',
+    marginLeft: 12,
+    flexShrink: 1,
   },
 });
 
