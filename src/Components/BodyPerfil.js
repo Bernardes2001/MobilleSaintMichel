@@ -1,125 +1,149 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import React, { useState, useContext, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, Image } from 'react-native';
 import { Avatar, Card } from 'react-native-paper';
 import { ThemeContext } from '../ThemeContext';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from 'axios';
 
 const PerfilPaciente = () => {
-  const [profileImage, setProfileImage] = useState('https://via.placeholder.com/80');
   const { darkMode, toggleTheme } = useContext(ThemeContext);
   const styles = getStyles(darkMode);
+  const [dados, setDados] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+  useEffect(() => {
+    const buscarDadosPaciente = async () => {
+      setLoading(true);
+      try {
+        const id = await AsyncStorage.getItem('id');
+        if (id) {
+          const response = await axios.get(`http://10.0.2.2:5000/paciente/${id}`);
+          setDados(response.data.usuario); // <-- aqui pega o campo 'usuario'
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
-    }
-  };
+    buscarDadosPaciente();
+  }, []);
+
+  if (loading) {
+    return <Text>Carregando...</Text>;
+  }
+
+  if (!dados) {
+    return <Text>Nenhum dado encontrado</Text>;
+  }
+
+
 
   return (
     <View style={styles.container}>
-   
       <Card style={styles.card}>
         <View style={styles.profileSection}>
-          <TouchableOpacity onPress={pickImage}>
-            <Avatar.Image 
-              size={80} 
-              source={{ uri: profileImage }} 
-              style={styles.avatar}
-            />
-          </TouchableOpacity>
+          <Image
+            source={{ uri: dados.imagemGenero }}
+            style={{ width: 120, height: 120, borderRadius: 60 }}
+          />
           <View style={styles.profileInfo}>
-            <Text style={styles.name}>José Santos</Text>
-            <Text style={styles.email}>jose@gmail.com</Text>
+            <Text style={styles.name}>{dados.nomeCompleto}</Text>
+            <Text style={styles.email}>{dados.email}</Text>
           </View>
         </View>
         <View style={styles.infoSection}>
           <Text style={styles.label}>Idade:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder=""
+          <TextInput
+            style={styles.input}
+            value={dados.dataDeNascimento}
+            editable={false}
             placeholderTextColor={styles.placeholderColor}
           />
 
           <Text style={styles.label}>CPF:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder=""
+          <TextInput
+            style={styles.input}
+            value={dados.cpf}
+            editable={false}
             placeholderTextColor={styles.placeholderColor}
           />
 
           <Text style={styles.label}>RG:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder=""
+          <TextInput
+            style={styles.input}
+            value={dados.rg}
+            editable={false}
             placeholderTextColor={styles.placeholderColor}
           />
         </View>
       </Card>
-      
+
       <Card style={styles.card}>
         <Text style={styles.sectionTitle}>DADOS DO PACIENTE:</Text>
         <View style={styles.infoSection}>
           <Text style={styles.label}>Nome completo:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder=""
-            placeholderTextColor={styles.placeholderColor}
-          />
-
-          <Text style={styles.label}>Data de Nascimento:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder="dd/mm/aaaa"
+          <TextInput
+            style={styles.input}
+            value={dados.nomeCompleto}
+            editable={false}
             placeholderTextColor={styles.placeholderColor}
           />
 
           <Text style={styles.label}>Endereço:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder=""
+          <TextInput
+            style={styles.input}
+            value={dados.endereco}
+            editable={false}
             placeholderTextColor={styles.placeholderColor}
           />
 
           <Text style={styles.label}>Telefone:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder=""
+          <TextInput
+            style={styles.input}
+            value={dados.telefone}
+            editable={false}
             placeholderTextColor={styles.placeholderColor}
           />
 
           <Text style={styles.label}>Email:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder=""
+          <TextInput
+            style={styles.input}
+            value={dados.email}
+            editable={false}
             placeholderTextColor={styles.placeholderColor}
           />
 
           <Text style={styles.label}>Gênero:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder=""
-            placeholderTextColor={styles.placeholderColor}
-          />
-
-          <Text style={styles.label}>Senha:</Text>
-          <TextInput 
-            style={styles.input} 
-            secureTextEntry 
-            placeholder=""
+          <TextInput
+            style={styles.input}
+            value={dados.genero}
+            editable={false}
             placeholderTextColor={styles.placeholderColor}
           />
 
           <Text style={styles.label}>Tipo sanguíneo:</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder=""
+          <TextInput
+            style={styles.input}
+            value={dados.tipoSanguineo}
+            editable={false}
+            placeholderTextColor={styles.placeholderColor}
+          />
+
+          <Text style={styles.label}>Convênio Médico:</Text>
+          <TextInput
+            style={styles.input}
+            value={dados.convenioMedico}
+            editable={false}
+            placeholderTextColor={styles.placeholderColor}
+          />
+
+          <Text style={styles.label}>Plano do Convênio:</Text>
+          <TextInput
+            style={styles.input}
+            value={dados.planoConvenio}
+            editable={false}
             placeholderTextColor={styles.placeholderColor}
           />
         </View>

@@ -70,6 +70,7 @@ const Login = ({ navigation }) => {
         // Aqui você pode armazenar o token ou dados do usuário
         // await AsyncStorage.setItem('userToken', response.data.token);
         await AsyncStorage.setItem('token', response.data.token);
+        await AsyncStorage.setItem('id', response.data.id.toString());
         // Navega para a página inicial
         navigation.navigate("HomePage");
       } else {
