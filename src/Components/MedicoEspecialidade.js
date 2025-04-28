@@ -1,48 +1,50 @@
-import React, { useRef, useState, useContext } from "react";
-import { 
-  Image, 
-  StyleSheet, 
-  View, 
-  Text, 
-  ScrollView, 
-  Dimensions, 
-  TouchableOpacity, 
-  Animated, 
-  TextInput 
+import React, { useEffect, useState, useRef, useContext } from "react";
+import {
+    Image,
+    StyleSheet,
+    View,
+    Text,
+    ScrollView,
+    Dimensions,
+    TouchableOpacity,
+    Animated,
+    TextInput
 } from "react-native";
 import { ThemeContext } from '../ThemeContext';
+import axios from 'axios';
 
 const screenWidth = Dimensions.get('window').width;
 
-const medicos = [
-    { nome: "Dr. Flávio", especialidade: "Neurologista", imagem: require('../../assets/medicoNeuro.png') },
-    { nome: "Dra. Carla", especialidade: "Cardiologista", imagem: require('../../assets/medicoCardio.png') },
-    { nome: "Dr. Pedro", especialidade: "Ortopedista", imagem: require('../../assets/medicoOrtop.png') },   
-];
-
 const especialidades = [
-    "Todos", "Cardiologista", "Dermatologista", "Gastroenterologista", 
-    "Ginecologista", "Nefrologista", "Neurologista", "Oftalmologista", 
+    "Todos", "Cardiologista", "Dermatologista", "Gastroenterologista",
+    "Ginecologista", "Nefrologista", "Neurologista", "Oftalmologista",
     "Oncologista", "Ortopedista", "Otorrinolaringologista", "Pneumologista", "Urologista"
 ];
 
 export default function MedicoEspecialidade() {
+    const [medico, setMedico] = useState([]);
+    const [loading, setLoading] = useState(true);
     const scrollViewRef = useRef(null);
     const [activeIndex, setActiveIndex] = useState(0);
     const [filtro, setFiltro] = useState("Todos");
     const [pesquisa, setPesquisa] = useState("");
     const { darkMode, toggleTheme } = useContext(ThemeContext);
     const scrollX = useRef(new Animated.Value(0)).current;
+    const estilos = getStyles(darkMode);
 
-    const medicosFiltrados = medicos.filter(medico =>
-        (filtro === "Todos" || medico.especialidade === filtro) &&
-        medico.especialidade.toLowerCase().includes(pesquisa.toLowerCase())
-    );
+    const medicosFiltrados = medico.filter(medico => {
+        const nomeMatch = medico.nome_completo.toLowerCase().includes(pesquisa.toLowerCase());
+        const especialidadeMatch = (filtro === "Todos" || medico.especialidade === filtro) &&
+            medico.especialidade.toLowerCase().includes(pesquisa.toLowerCase());
+
+        return (filtro === "Todos" || medico.especialidade === filtro) &&
+            (nomeMatch || especialidadeMatch);
+    });
 
     const handleScroll = Animated.event(
         [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-        { 
-            useNativeDriver: false, 
+        {
+            useNativeDriver: false,
             listener: event => {
                 const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
                 setActiveIndex(index);
@@ -50,11 +52,28 @@ export default function MedicoEspecialidade() {
         }
     );
 
-    const estilos = getStyles(darkMode);
+    useEffect(() => {
+        const fetchMedicos = async () => {
+            try {
+                const response = await axios.get('http://10.0.2.2:5000/medico');
+                setMedico(response.data); // Resposta é um array de médicos
+            } catch (error) {
+                console.error("Erro ao buscar médicos:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMedicos();
+    }, []);
+
+    if (loading) {
+        return <Text>Carregando...</Text>;
+    }
 
     return (
         <View style={estilos.container}>
-         
+
             <TextInput
                 style={estilos.inputFiltro}
                 placeholder="Pesquisar especialidade"
@@ -62,40 +81,34 @@ export default function MedicoEspecialidade() {
                 value={pesquisa}
                 onChangeText={setPesquisa}
             />
-            
+
             <View style={estilos.filtroContainer}>
-                <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false} 
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
                     contentContainerStyle={estilos.filtroContent}
                 >
                     {especialidades.map((esp, index) => (
                         <TouchableOpacity
                             key={index}
-                            style={[
-                                estilos.filtroBotao, 
-                                filtro === esp && estilos.filtroBotaoAtivo
-                            ]}
+                            style={[estilos.filtroBotao, filtro === esp && estilos.filtroBotaoAtivo]}
                             onPress={() => setFiltro(esp)}
                         >
-                            <Text style={[
-                                estilos.filtroTexto, 
-                                filtro === esp && estilos.filtroTextoAtivo
-                            ]}>
+                            <Text style={[estilos.filtroTexto, filtro === esp && estilos.filtroTextoAtivo]}>
                                 {esp}
                             </Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
             </View>
-            
+
             {medicosFiltrados.length > 0 ? (
                 <>
-                    <ScrollView 
+                    <ScrollView
                         ref={scrollViewRef}
-                        horizontal 
-                        showsHorizontalScrollIndicator={false} 
-                        pagingEnabled 
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        pagingEnabled
                         style={estilos.scrollView}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
@@ -103,25 +116,25 @@ export default function MedicoEspecialidade() {
                         {medicosFiltrados.map((medico, index) => (
                             <View key={index} style={estilos.cardContainer}>
                                 <View style={estilos.card}>
-                                    <Image 
-                                        source={medico.imagem} 
-                                        style={estilos.medicoImage} 
+                                    <Image
+                                        source={{ uri: `http://10.0.2.2:5000${medico.foto}` }}
+                                        style={estilos.medicoImage}
                                     />
                                     <View style={estilos.medicoInfo}>
-                                        <Text style={estilos.medicoNome}>{medico.nome}</Text>
+                                        <Text style={estilos.medicoNome}>{medico.nome_completo}</Text>
                                         <Text style={estilos.medicoEspecialidade}>{medico.especialidade}</Text>
                                         <View style={estilos.socialIcons}>
-                                            <Image 
-                                                source={require('../../assets/linkedinDois.png')} 
-                                                style={estilos.socialIcon} 
+                                            <Image
+                                                source={require('../../assets/linkedinDois.png')}
+                                                style={estilos.socialIcon}
                                             />
-                                            <Image 
-                                                source={require('../../assets/faceDois.png')} 
-                                                style={estilos.socialIcon} 
+                                            <Image
+                                                source={require('../../assets/faceDois.png')}
+                                                style={estilos.socialIcon}
                                             />
-                                            <Image 
-                                                source={require('../../assets/instaDois.png')} 
-                                                style={estilos.socialIcon} 
+                                            <Image
+                                                source={require('../../assets/instaDois.png')}
+                                                style={estilos.socialIcon}
                                             />
                                         </View>
                                     </View>
@@ -132,15 +145,12 @@ export default function MedicoEspecialidade() {
                             </View>
                         ))}
                     </ScrollView>
-                    
+
                     <View style={estilos.indicadorContainer}>
                         {medicosFiltrados.map((_, index) => (
-                            <View 
-                                key={index} 
-                                style={[
-                                    estilos.indicador, 
-                                    activeIndex === index && estilos.indicadorAtivo
-                                ]} 
+                            <View
+                                key={index}
+                                style={[estilos.indicador, activeIndex === index && estilos.indicadorAtivo]}
                             />
                         ))}
                     </View>
@@ -153,6 +163,7 @@ export default function MedicoEspecialidade() {
         </View>
     );
 }
+
 
 const getStyles = (darkMode) => StyleSheet.create({
     container: {
