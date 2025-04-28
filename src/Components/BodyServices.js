@@ -74,7 +74,7 @@ const getStyles = (darkMode) => StyleSheet.create({
     paddingBottom: 30,
   },
   headerText: {
-    color: "#159EEC",
+    color: "#BFD2F8",
     textAlign: "center",
     fontSize: 18,
     fontFamily: "Arial",
@@ -107,7 +107,7 @@ const getStyles = (darkMode) => StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 12,
-    backgroundColor: darkMode ? "#1F2B6C" : "#F5F5F5",
+    backgroundColor: darkMode ? "#1E1E2E" : "#F5F5F5",
     marginBottom: 15,
     elevation: 3,
     shadowColor: darkMode ? "#000" : "#1F2B6C",
@@ -131,7 +131,7 @@ const getStyles = (darkMode) => StyleSheet.create({
     lineHeight: 18,
   },
   moreButton: {
-    backgroundColor: darkMode ? "#159EEC" : "#1F2B6C",
+    backgroundColor: darkMode ? "#1E1E2E" : "#1F2B6C",
     padding: 15,
     borderRadius: 10,
     marginTop: 20,
@@ -145,7 +145,7 @@ const getStyles = (darkMode) => StyleSheet.create({
     shadowRadius: 4,
   },
   moreButtonText: {
-    color: darkMode ? "#1F2B6C" : "#FFFFFF",
+    color: darkMode ? "#BFD2F8" : "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",

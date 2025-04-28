@@ -133,7 +133,7 @@ export default function NavBar({ navigation }) {
 
 const getStyles = (darkMode) => StyleSheet.create({
   viewNav: {
-    backgroundColor: darkMode ? "#121212" : "#1F2B6C", // Black in dark mode, blue in light
+    backgroundColor: darkMode ? "#1E1E2E" : "#1F2B6C", 
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
@@ -169,8 +169,8 @@ const getStyles = (darkMode) => StyleSheet.create({
   },
   modalContainer: {
     width: 250,
-    height: "80%", 
-    backgroundColor: darkMode ? "#1E1E1E" : "#BFD2F8",
+    height: "85%", 
+    backgroundColor: darkMode ? "#1E1E2E" : "#BFD2F8",
     padding: 20,
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
@@ -184,7 +184,7 @@ const getStyles = (darkMode) => StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: darkMode ? "#121212" : "#1F2B6C",
+    backgroundColor: darkMode ? "#1E1E2E" : "#1F2B6C",
     padding: 10,
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,

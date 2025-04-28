@@ -173,13 +173,13 @@ const getStyles = (darkMode) => StyleSheet.create({
     },
     inputFiltro: {
         height: 40,
-        borderColor: darkMode ? '#159EEC' : '#CCCCCC',
+        borderColor: darkMode ? '#1E1E2E' : '#CCCCCC',
         borderWidth: 1,
         margin: 15,
         paddingHorizontal: 15,
         borderRadius: 20,
-        backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
-        color: darkMode ? '#BFD2F8' : '#000000',
+        backgroundColor: darkMode ? '#1E1E2E' : '#FFFFFF',
+        color: darkMode ? '#1E1E2E' : '#000000',
         fontSize: 16,
     },
     placeholderColor: darkMode ? '#BFD2F8' : '#666666',
@@ -192,7 +192,7 @@ const getStyles = (darkMode) => StyleSheet.create({
         alignItems: 'center',
     },
     filtroBotao: {
-        backgroundColor: darkMode ? '#1F2B6C' : '#F0F0F0',
+        backgroundColor: darkMode ? '#1E1E2E' : '#F0F0F0',
         paddingHorizontal: 20,
         paddingVertical: 8,
         borderRadius: 20,
@@ -201,7 +201,7 @@ const getStyles = (darkMode) => StyleSheet.create({
         justifyContent: 'center',
     },
     filtroBotaoAtivo: {
-        backgroundColor: darkMode ? '#159EEC' : '#1F2B6C',
+        backgroundColor: darkMode ? '#BFD2F8' : '#1F2B6C',
     },
     filtroTexto: {
         color: darkMode ? '#BFD2F8' : '#333333',
@@ -224,7 +224,7 @@ const getStyles = (darkMode) => StyleSheet.create({
         maxWidth: 400,
         borderRadius: 10,
         overflow: 'hidden',
-        backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
+        backgroundColor: darkMode ? '#1E1E2E' : '#FFFFFF',
         elevation: 5,
         shadowColor: darkMode ? '#000' : '#1F2B6C',
         shadowOffset: { width: 0, height: 2 },
@@ -263,7 +263,7 @@ const getStyles = (darkMode) => StyleSheet.create({
         tintColor: darkMode ? '#BFD2F8' : '#1F2B6C',
     },
     profileButton: {
-        backgroundColor: darkMode ? '#159EEC' : '#1F2B6C',
+        backgroundColor: darkMode ? '#BFD2F8' : '#1F2B6C',
         padding: 15,
         alignItems: 'center',
     },

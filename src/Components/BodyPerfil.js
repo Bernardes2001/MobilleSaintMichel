@@ -159,7 +159,7 @@ const getStyles = (darkMode) => StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: darkMode ? '#1F2B6C' : '#FFFFFF',
+    backgroundColor: darkMode ? '#1E1E2E' : '#FFFFFF',
     padding: 15,
     borderRadius: 10,
     marginBottom: 20,
