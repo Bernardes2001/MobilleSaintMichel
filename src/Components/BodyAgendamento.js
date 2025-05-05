@@ -17,12 +17,13 @@ import { format } from 'date-fns';
 import { ThemeContext } from '../ThemeContext';
 import * as DocumentPicker from 'expo-document-picker';
 
-
 const Agendamento = () => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
   const [tipoPaciente, setTipoPaciente] = useState('');
+  const [categoriaExame, setCategoriaExame] = useState('');
   const [tipoDeExame, setTipoDeExame] = useState('');
   const [exameEspecifico, setExameEspecifico] = useState('');
+  const [examesEspecificos, setExamesEspecificos] = useState([]);
   const [pedidoMedico, setPedidoMedico] = useState(null);
   const [especialidade, setEspecialidade] = useState('');
   const [medico, setMedico] = useState('');
@@ -31,16 +32,113 @@ const Agendamento = () => {
   const [hora, setHora] = useState(null);
   const [showDateTimePicker, setShowDateTimePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [servicoExtra, setServicoExtra] = useState('');
+  const [endereco, setEndereco] = useState('');
+  const [descricaoProblema, setDescricaoProblema] = useState('');
+  const [tipoCirurgia, setTipoCirurgia] = useState('');
+  const [tipoFisioterapia, setTipoFisioterapia] = useState('');
 
   const estilos = getStyles(darkMode);
 
-
-  //Agendar consulta
+  // Especialidades médicas
   const especialidades = [
     'Ortopedista', 'Proctologista', 'Oncologista', 'Otorrinolaringologista',
     'Oftalmologista', 'Cardiologista', 'Pneumologista', 'Nefrologista',
-    'Gastroenterologista', 'Urologista', 'Dermatologista', 'Ginecologista'
+    'Gastroenterologista', 'Urologista', 'Dermatologista', 'Ginecologista', 'Nutricionista'
   ];
+
+  // Serviços extras disponíveis
+  const servicosExtras = [
+    'Atendimento Domiciliar',
+    'Pequena Cirurgia',
+    'Fisioterapia',
+    'Emergência'
+  ];
+
+  // Tipos de cirurgia
+  const tiposCirurgia = [
+    'Cirurgia Dermatológica',
+    'Biópsia',
+    'Remoção de Cisto',
+    'Sutura',
+    'Outro'
+  ];
+
+  // Tipos de fisioterapia
+  const tiposFisioterapia = [
+    'Fisioterapia Ortopédica',
+    'Fisioterapia Neurológica',
+    'Fisioterapia Respiratória',
+    'Fisioterapia Pós-operatória',
+    'Fisioterapia Esportiva'
+  ];
+
+  // Categorias principais de exames
+  const categoriasPrincipaisExames = [
+    'Exames Laboratoriais',
+    'Exames de Imagem',
+    'Exames Nutricionais'
+  ];
+
+  // Subcategorias de exames
+  const subcategoriasExames = {
+    'Exames Laboratoriais': [
+      'Hemograma completo',
+      'Glicemia em jejum',
+      'Colesterol total e frações',
+      'Triglicerídeos',
+      'TSH e T4 livre',
+      'Exame de urina',
+      'Exame de fezes'
+    ],
+    'Exames de Imagem': [
+      'Raio X',
+      'Ultrassom',
+      'Tomografia',
+      'Ressonância magnética',
+      'Mamografia',
+      'Densitometria óssea'
+    ],
+    'Exames Nutricionais': [
+      'Avaliação de composição corporal',
+      'Bioimpedância',
+      'Calorimetria indireta',
+      'Avaliação nutricional completa',
+      'Exame de vitaminas e minerais'
+    ]
+  };
+
+  // Exames específicos por subcategoria
+  const examesPorSubcategoria = {
+    'Raio X': [
+      'Raio X de tórax',
+      'Raio X de coluna',
+      'Raio X de membros',
+      'Raio X de crânio',
+      'Raio X de abdômen'
+    ],
+    'Ultrassom': [
+      'Ultrassom abdominal',
+      'Ultrassom pélvico',
+      'Ultrassom de tireoide',
+      'Ultrassom de mama',
+      'Ultrassom Doppler vascular'
+    ],
+    'Tomografia': [
+      'Tomografia de crânio',
+      'Tomografia de tórax',
+      'Tomografia de abdômen',
+      'Tomografia de coluna',
+      'Angiotomografia'
+    ],
+    'Ressonância magnética': [
+      'Ressonância de crânio',
+      'Ressonância de coluna',
+      'Ressonância de articulações',
+      'Ressonância de abdômen',
+      'Ressonância cardíaca'
+    ]
+  };
 
   useEffect(() => {
     const buscarMedicos = async () => {
@@ -59,6 +157,29 @@ const Agendamento = () => {
 
     buscarMedicos();
   }, [especialidade]);
+
+  // Atualiza subcategorias quando a categoria principal muda
+  useEffect(() => {
+    if (categoriaExame && subcategoriasExames[categoriaExame]) {
+      setExamesEspecificos(subcategoriasExames[categoriaExame]);
+      setTipoDeExame(''); // Resetar subcategoria quando muda a categoria principal
+      setExameEspecifico(''); // Resetar exame específico
+    } else {
+      setExamesEspecificos([]);
+    }
+  }, [categoriaExame]);
+
+  // Atualiza exames específicos quando a subcategoria muda
+  useEffect(() => {
+    if (tipoDeExame && examesPorSubcategoria[tipoDeExame]) {
+      setExamesEspecificos(examesPorSubcategoria[tipoDeExame]);
+      setExameEspecifico(''); // Resetar exame específico quando muda a subcategoria
+    } else if (tipoDeExame && subcategoriasExames[categoriaExame]?.includes(tipoDeExame)) {
+      // Se for um exame direto (sem subdivisão)
+      setExameEspecifico(tipoDeExame);
+      setExamesEspecificos([]);
+    }
+  }, [tipoDeExame]);
 
   const agendarConsulta = async () => {
     if (!especialidade || !medico || !data || !hora) {
@@ -89,15 +210,10 @@ const Agendamento = () => {
     }
   };
 
-  //------------------------------------------------------------------------------
-
-  //Agendar exame
-  const tiposDeExame = [
-    'Exame de sangue', 'Raio X', 'Ultrassom', 'Tomografia', 'Ressonância magnética'
-  ];
-
   const agendarExame = async () => {
-    if (!tipoDeExame || !exameEspecifico || !data || !hora || !pedidoMedico) { // Adicionei validação do pedidoMedico
+    let exameFinal = exameEspecifico || tipoDeExame;
+    
+    if (!categoriaExame || !exameFinal || !data || !hora || !pedidoMedico) {
       Alert.alert('Erro', 'Preencha todos os campos obrigatórios, incluindo o pedido médico');
       return;
     }
@@ -106,13 +222,12 @@ const Agendamento = () => {
       const token = await AsyncStorage.getItem('token');
       const formData = new FormData();
 
-      // Adicione os campos básicos
+      formData.append('categoriaExame', categoriaExame);
       formData.append('tipoDeExame', tipoDeExame);
-      formData.append('exameEspecifico', exameEspecifico);
+      formData.append('exameEspecifico', exameFinal);
       formData.append('data', format(data, 'yyyy-MM-dd'));
       formData.append('hora', format(hora, 'HH:mm'));
 
-      // Adicione o arquivo PDF
       formData.append('pedidoMedico', {
         uri: pedidoMedico.uri,
         name: pedidoMedico.name || 'pedido_medico.pdf',
@@ -127,7 +242,7 @@ const Agendamento = () => {
       });
 
       Alert.alert('Sucesso', 'Exame agendado com sucesso!');
-      // Limpe os campos
+      setCategoriaExame('');
       setTipoDeExame('');
       setExameEspecifico('');
       setData(null);
@@ -144,6 +259,67 @@ const Agendamento = () => {
     }
   };
 
+  const agendarServicoExtra = async () => {
+    if (!servicoExtra || !data || !hora) {
+      Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const payload = {
+        tipoServico: servicoExtra,
+        data: format(data, 'yyyy-MM-dd'),
+        hora: format(hora, 'HH:mm'),
+      };
+
+      if (servicoExtra === 'Atendimento Domiciliar') {
+        if (!endereco) {
+          Alert.alert('Erro', 'Informe o endereço para atendimento domiciliar');
+          return;
+        }
+        payload.endereco = endereco;
+        payload.descricao = descricaoProblema;
+      } else if (servicoExtra === 'Pequena Cirurgia') {
+        if (!tipoCirurgia) {
+          Alert.alert('Erro', 'Selecione o tipo de cirurgia');
+          return;
+        }
+        payload.tipoCirurgia = tipoCirurgia;
+        payload.descricao = descricaoProblema;
+      } else if (servicoExtra === 'Fisioterapia') {
+        if (!tipoFisioterapia) {
+          Alert.alert('Erro', 'Selecione o tipo de fisioterapia');
+          return;
+        }
+        payload.tipoFisioterapia = tipoFisioterapia;
+      } else if (servicoExtra === 'Emergência') {
+        if (!descricaoProblema) {
+          Alert.alert('Erro', 'Descreva o problema para emergência');
+          return;
+        }
+        payload.descricao = descricaoProblema;
+      }
+
+      await axios.post('http://10.0.2.2:5000/servicos/agendar', payload, {
+        headers: {
+          Authorization: `Bearer ${token?.trim()}`,
+        },
+      });
+
+      Alert.alert('Sucesso', `${servicoExtra} agendado com sucesso!`);
+      setServicoExtra('');
+      setEndereco('');
+      setDescricaoProblema('');
+      setTipoCirurgia('');
+      setTipoFisioterapia('');
+      setData(null);
+      setHora(null);
+    } catch (err) {
+      console.log(err.response?.data || err.message);
+      Alert.alert('Erro', `Erro ao agendar ${servicoExtra}`);
+    }
+  };
 
   const selecionarPedidoMedico = async () => {
     try {
@@ -152,7 +328,6 @@ const Agendamento = () => {
         copyToCacheDirectory: true,
       });
 
-      // Verificação correta
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
 
@@ -175,55 +350,101 @@ const Agendamento = () => {
     setPedidoMedico(null);
   };
 
-
-  //------------------------------------------------------------------------------
-
-  
   return (
     <ScrollView contentContainerStyle={estilos.container}>
+      <Text style={estilos.title}>Agendar Serviços Médicos</Text>
 
-
-      <Text style={estilos.title}>Agendar Consulta/Exame</Text>
-
-      <Text style={estilos.label}>Agendar para:</Text>
+      <Text style={estilos.label}>Tipo de Serviço:</Text>
       <View style={estilos.pickerContainer}>
         <Picker
           selectedValue={tipoPaciente}
-          onValueChange={(value) => setTipoPaciente(value)}
+          onValueChange={(value) => {
+            setTipoPaciente(value);
+            setServicoExtra('');
+          }}
           style={estilos.picker}
           dropdownIconColor={estilos.pickerIcon.color}
         >
           <Picker.Item label="Selecione" value="" />
           <Picker.Item label="Consulta" value="consulta" />
           <Picker.Item label="Exame" value="exame" />
+          <Picker.Item label="Serviço Extra" value="servicoExtra" />
         </Picker>
       </View>
 
       {tipoPaciente === 'exame' && (
         <>
-          <Text style={estilos.label}>Tipo de Exame</Text>
+          <Text style={estilos.label}>Categoria do Exame</Text>
           <View style={estilos.pickerContainer}>
             <Picker
-              selectedValue={tipoDeExame}
-              onValueChange={(value) => setTipoDeExame(value)}
+              selectedValue={categoriaExame}
+              onValueChange={(value) => setCategoriaExame(value)}
               style={estilos.picker}
               dropdownIconColor={estilos.pickerIcon.color}
             >
-              <Picker.Item label="Selecione o tipo de exame" value="" />
-              {tiposDeExame.map((item) => (
+              <Picker.Item label="Selecione a categoria" value="" />
+              {categoriasPrincipaisExames.map((item) => (
                 <Picker.Item key={item} label={item} value={item} />
               ))}
             </Picker>
           </View>
 
-          <Text style={estilos.label}>Exame Específico</Text>
-          <TextInput
-            style={estilos.input}
-            placeholder="Digite o exame específico"
-            placeholderTextColor={estilos.placeholderColor}
-            value={exameEspecifico}
-            onChangeText={setExameEspecifico}
-          />
+          {categoriaExame === 'Exames de Imagem' && (
+            <>
+              <Text style={estilos.label}>Tipo de Exame de Imagem</Text>
+              <View style={estilos.pickerContainer}>
+                <Picker
+                  selectedValue={tipoDeExame}
+                  onValueChange={(value) => setTipoDeExame(value)}
+                  style={estilos.picker}
+                  dropdownIconColor={estilos.pickerIcon.color}
+                >
+                  <Picker.Item label="Selecione o tipo" value="" />
+                  {subcategoriasExames['Exames de Imagem'].map((item) => (
+                    <Picker.Item key={item} label={item} value={item} />
+                  ))}
+                </Picker>
+              </View>
+
+              {tipoDeExame && examesPorSubcategoria[tipoDeExame] && (
+                <>
+                  <Text style={estilos.label}>Exame Específico</Text>
+                  <View style={estilos.pickerContainer}>
+                    <Picker
+                      selectedValue={exameEspecifico}
+                      onValueChange={(value) => setExameEspecifico(value)}
+                      style={estilos.picker}
+                      dropdownIconColor={estilos.pickerIcon.color}
+                    >
+                      <Picker.Item label="Selecione o exame" value="" />
+                      {examesPorSubcategoria[tipoDeExame].map((item) => (
+                        <Picker.Item key={item} label={item} value={item} />
+                      ))}
+                    </Picker>
+                  </View>
+                </>
+              )}
+            </>
+          )}
+
+          {(categoriaExame === 'Exames Laboratoriais' || categoriaExame === 'Exames Nutricionais') && (
+            <>
+              <Text style={estilos.label}>Exame Específico</Text>
+              <View style={estilos.pickerContainer}>
+                <Picker
+                  selectedValue={exameEspecifico}
+                  onValueChange={(value) => setExameEspecifico(value)}
+                  style={estilos.picker}
+                  dropdownIconColor={estilos.pickerIcon.color}
+                >
+                  <Picker.Item label="Selecione o exame" value="" />
+                  {subcategoriasExames[categoriaExame].map((item) => (
+                    <Picker.Item key={item} label={item} value={item} />
+                  ))}
+                </Picker>
+              </View>
+            </>
+          )}
 
           <Text style={estilos.label}>Data</Text>
           <TouchableOpacity
@@ -293,7 +514,6 @@ const Agendamento = () => {
               <Text style={estilos.uploadButtonText}>Selecionar Arquivo PDF</Text>
             </TouchableOpacity>
           )}
-
 
           <TouchableOpacity style={estilos.button} onPress={agendarExame}>
             <Text style={estilos.buttonText}>Agendar Exame</Text>
@@ -387,6 +607,165 @@ const Agendamento = () => {
           <TouchableOpacity style={estilos.button} onPress={agendarConsulta}>
             <Text style={estilos.buttonText}>Agendar Consulta</Text>
           </TouchableOpacity>
+        </>
+      )}
+
+      {tipoPaciente === 'servicoExtra' && (
+        <>
+          <Text style={estilos.label}>Serviço Extra</Text>
+          <View style={estilos.pickerContainer}>
+            <Picker
+              selectedValue={servicoExtra}
+              onValueChange={(value) => setServicoExtra(value)}
+              style={estilos.picker}
+              dropdownIconColor={estilos.pickerIcon.color}
+            >
+              <Picker.Item label="Selecione o serviço" value="" />
+              {servicosExtras.map((item) => (
+                <Picker.Item key={item} label={item} value={item} />
+              ))}
+            </Picker>
+          </View>
+
+          {servicoExtra === 'Atendimento Domiciliar' && (
+            <>
+              <Text style={estilos.label}>Endereço Completo</Text>
+              <TextInput
+                style={estilos.input}
+                placeholder="Digite o endereço para atendimento"
+                placeholderTextColor={estilos.placeholderColor}
+                value={endereco}
+                onChangeText={setEndereco}
+              />
+
+              <Text style={estilos.label}>Descrição do Problema</Text>
+              <TextInput
+                style={[estilos.input, { height: 100, textAlignVertical: 'top' }]}
+                placeholder="Descreva o problema ou sintomas"
+                placeholderTextColor={estilos.placeholderColor}
+                value={descricaoProblema}
+                onChangeText={setDescricaoProblema}
+                multiline
+              />
+            </>
+          )}
+
+          {servicoExtra === 'Pequena Cirurgia' && (
+            <>
+              <Text style={estilos.label}>Tipo de Cirurgia</Text>
+              <View style={estilos.pickerContainer}>
+                <Picker
+                  selectedValue={tipoCirurgia}
+                  onValueChange={(value) => setTipoCirurgia(value)}
+                  style={estilos.picker}
+                  dropdownIconColor={estilos.pickerIcon.color}
+                >
+                  <Picker.Item label="Selecione o tipo" value="" />
+                  {tiposCirurgia.map((item) => (
+                    <Picker.Item key={item} label={item} value={item} />
+                  ))}
+                </Picker>
+              </View>
+
+              <Text style={estilos.label}>Descrição</Text>
+              <TextInput
+                style={[estilos.input, { height: 100, textAlignVertical: 'top' }]}
+                placeholder="Descreva a necessidade da cirurgia"
+                placeholderTextColor={estilos.placeholderColor}
+                value={descricaoProblema}
+                onChangeText={setDescricaoProblema}
+                multiline
+              />
+            </>
+          )}
+
+          {servicoExtra === 'Fisioterapia' && (
+            <>
+              <Text style={estilos.label}>Tipo de Fisioterapia</Text>
+              <View style={estilos.pickerContainer}>
+                <Picker
+                  selectedValue={tipoFisioterapia}
+                  onValueChange={(value) => setTipoFisioterapia(value)}
+                  style={estilos.picker}
+                  dropdownIconColor={estilos.pickerIcon.color}
+                >
+                  <Picker.Item label="Selecione o tipo" value="" />
+                  {tiposFisioterapia.map((item) => (
+                    <Picker.Item key={item} label={item} value={item} />
+                  ))}
+                </Picker>
+              </View>
+            </>
+          )}
+
+          {servicoExtra === 'Emergência' && (
+            <>
+              <Text style={estilos.label}>Descrição da Emergência</Text>
+              <TextInput
+                style={[estilos.input, { height: 120, textAlignVertical: 'top' }]}
+                placeholder="Descreva detalhadamente a emergência"
+                placeholderTextColor={estilos.placeholderColor}
+                value={descricaoProblema}
+                onChangeText={setDescricaoProblema}
+                multiline
+              />
+            </>
+          )}
+
+          {servicoExtra !== '' && (
+            <>
+              <Text style={estilos.label}>Data</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowDateTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={estilos.label}>Horário</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
+                </Text>
+              </TouchableOpacity>
+
+              {showDateTimePicker && (
+                <DateTimePicker
+                  value={data || new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(event, selectedDate) => {
+                    setShowDateTimePicker(false);
+                    if (selectedDate) setData(selectedDate);
+                  }}
+                  themeVariant={darkMode ? 'dark' : 'light'}
+                />
+              )}
+
+              {showTimePicker && (
+                <DateTimePicker
+                  value={hora || new Date()}
+                  mode="time"
+                  is24Hour={true}
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(event, selectedTime) => {
+                    setShowTimePicker(false);
+                    if (selectedTime) setHora(selectedTime);
+                  }}
+                  themeVariant={darkMode ? 'dark' : 'light'}
+                />
+              )}
+
+              <TouchableOpacity style={estilos.button} onPress={agendarServicoExtra}>
+                <Text style={estilos.buttonText}>Agendar {servicoExtra}</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </>
       )}
     </ScrollView>

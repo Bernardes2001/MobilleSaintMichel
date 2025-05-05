@@ -11,6 +11,7 @@ import Login from "./src/Pages/Login";
 import Cadastro from "./src/Pages/Cadastro";
 import Perfil from "./src/Pages/Perfil";
 import Senha from "./src/Pages/Senha";
+import Notificacoes from "./src/Pages/Notificacoes";
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +29,7 @@ export default function MainNavigator() {
                 <Stack.Screen name="Cadastro" component={Cadastro} />
                 <Stack.Screen name="Perfil" component={Perfil} />
                 <Stack.Screen name="Senha" component={Senha} />
+                <Stack.Screen name="Notificacoes" component={Notificacoes}/>
             </Stack.Navigator>
         </NavigationContainer>
     );

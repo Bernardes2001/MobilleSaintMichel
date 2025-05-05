@@ -48,7 +48,7 @@ export default function CompactHeader() {
 
 const getStyles = (darkMode) => StyleSheet.create({
     container: {
-        backgroundColor: darkMode ? '#121212' : '#FFF',
+        backgroundColor: darkMode ? '#1E1E2E' : '#FFF',
         padding: 16,
         paddingBottom: 20,
         alignItems: 'center',

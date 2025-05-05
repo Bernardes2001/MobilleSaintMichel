@@ -13,6 +13,7 @@ import { ThemeContext } from '../ThemeContext';
 
 export default function NavBar({ navigation }) {
   const [modalVisivel, setModalVisivel] = useState(false);
+  const [hasNotifications, setHasNotifications] = useState(true); // Estado para controlar se há notificações
   const { darkMode, toggleTheme } = useContext(ThemeContext);
   const estilos = getStyles(darkMode);
 
@@ -29,7 +30,13 @@ export default function NavBar({ navigation }) {
     { name: "Servicos", icon: "tools", label: "Serviços" },
     { name: "Especialidades", icon: "star", label: "Especialidades" },
     { name: "Contato", icon: "email", label: "Contato" },
+    { name: "Notificacoes", icon: "bell", label: "Notificações" }, // Adicionado item de menu para notificações
   ];
+
+  const handleNotificationPress = () => {
+    setHasNotifications(false); // Marcar notificações como lidas
+    navigation.navigate("Notificacoes"); // Navegar para a tela de notificações
+  };
 
   return (
     <View style={estilos.viewNav}>
@@ -41,6 +48,18 @@ export default function NavBar({ navigation }) {
 
       {/* Right buttons */}
       <View style={estilos.rightButtons}>
+        {/* Botão de notificações */}
+        <TouchableOpacity onPress={handleNotificationPress} style={estilos.notificationButton}>
+          <Icon 
+            name={hasNotifications ? "bell" : "bell-outline"} 
+            size={24} 
+            color={estilos.iconColor} 
+          />
+          {hasNotifications && (
+            <View style={estilos.notificationBadge} />
+          )}
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={toggleTheme} style={estilos.themeButton}>
           <Icon 
             name={darkMode ? "weather-sunny" : "weather-night"} 
@@ -93,6 +112,9 @@ export default function NavBar({ navigation }) {
                         color={estilos.modalIconColor} 
                       />
                       <Text style={estilos.textoModal}>{option.label}</Text>
+                      {option.name === "Notificacoes" && hasNotifications && (
+                        <View style={estilos.modalNotificationBadge} />
+                      )}
                     </TouchableOpacity>
                   ))}
 
@@ -154,6 +176,26 @@ const getStyles = (darkMode) => StyleSheet.create({
   },
   themeButton: {
     padding: 5,
+  },
+  notificationButton: {
+    padding: 5,
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    backgroundColor: '#FF5252',
+    borderRadius: 5,
+    width: 10,
+    height: 10,
+  },
+  modalNotificationBadge: {
+    backgroundColor: '#FF5252',
+    borderRadius: 5,
+    width: 10,
+    height: 10,
+    marginLeft: 10,
   },
   opcao: {
     width: 28,
