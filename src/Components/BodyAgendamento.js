@@ -37,6 +37,7 @@ const Agendamento = () => {
   const [descricaoProblema, setDescricaoProblema] = useState('');
   const [tipoCirurgia, setTipoCirurgia] = useState('');
   const [tipoFisioterapia, setTipoFisioterapia] = useState('');
+  const [problemaCronico, setProblemaCronico] = useState('');
 
   const estilos = getStyles(darkMode);
 
@@ -52,7 +53,9 @@ const Agendamento = () => {
     'Atendimento Domiciliar',
     'Pequena Cirurgia',
     'Fisioterapia',
-    'Emergência'
+    'Emergência',
+    'Tratamento Contínuo',
+    'Acompanhamento com Nutricionista'
   ];
 
   // Tipos de cirurgia
@@ -260,50 +263,91 @@ const Agendamento = () => {
   };
 
   const agendarServicoExtra = async () => {
-    if (!servicoExtra || !data || !hora) {
-      Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
+    if (!servicoExtra) {
+      Alert.alert('Erro', 'Selecione um serviço');
+      return;
+    }
+
+    // Verificação de PDF obrigatório para todos os serviços exceto Emergência
+    if (servicoExtra !== 'Emergência' && !pedidoMedico) {
+      Alert.alert('Erro', 'É obrigatório anexar o pedido médico em PDF');
       return;
     }
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const payload = {
-        tipoServico: servicoExtra,
-        data: format(data, 'yyyy-MM-dd'),
-        hora: format(hora, 'HH:mm'),
-      };
+      const formData = new FormData();
+
+      formData.append('tipoServico', servicoExtra);
 
       if (servicoExtra === 'Atendimento Domiciliar') {
-        if (!endereco) {
-          Alert.alert('Erro', 'Informe o endereço para atendimento domiciliar');
+        if (!endereco || !descricaoProblema || !data || !hora) {
+          Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
           return;
         }
-        payload.endereco = endereco;
-        payload.descricao = descricaoProblema;
-      } else if (servicoExtra === 'Pequena Cirurgia') {
-        if (!tipoCirurgia) {
-          Alert.alert('Erro', 'Selecione o tipo de cirurgia');
+        formData.append('endereco', endereco);
+        formData.append('descricao', descricaoProblema);
+        formData.append('data', format(data, 'yyyy-MM-dd'));
+        formData.append('hora', format(hora, 'HH:mm'));
+      } 
+      else if (servicoExtra === 'Pequena Cirurgia') {
+        if (!tipoCirurgia || !descricaoProblema || !data || !hora) {
+          Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
           return;
         }
-        payload.tipoCirurgia = tipoCirurgia;
-        payload.descricao = descricaoProblema;
-      } else if (servicoExtra === 'Fisioterapia') {
-        if (!tipoFisioterapia) {
-          Alert.alert('Erro', 'Selecione o tipo de fisioterapia');
+        formData.append('tipoCirurgia', tipoCirurgia);
+        formData.append('descricao', descricaoProblema);
+        formData.append('data', format(data, 'yyyy-MM-dd'));
+        formData.append('hora', format(hora, 'HH:mm'));
+      } 
+      else if (servicoExtra === 'Fisioterapia') {
+        if (!tipoFisioterapia || !data || !hora) {
+          Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
           return;
         }
-        payload.tipoFisioterapia = tipoFisioterapia;
-      } else if (servicoExtra === 'Emergência') {
-        if (!descricaoProblema) {
-          Alert.alert('Erro', 'Descreva o problema para emergência');
+        formData.append('tipoFisioterapia', tipoFisioterapia);
+        formData.append('data', format(data, 'yyyy-MM-dd'));
+        formData.append('hora', format(hora, 'HH:mm'));
+      } 
+      else if (servicoExtra === 'Emergência') {
+        if (!endereco || !descricaoProblema) {
+          Alert.alert('Erro', 'Preencha o endereço e a descrição da emergência');
           return;
         }
-        payload.descricao = descricaoProblema;
+        formData.append('endereco', endereco);
+        formData.append('descricao', descricaoProblema);
+      } 
+      else if (servicoExtra === 'Tratamento Contínuo') {
+        if (!problemaCronico || !data || !hora) {
+          Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
+          return;
+        }
+        formData.append('problemaCronico', problemaCronico);
+        formData.append('data', format(data, 'yyyy-MM-dd'));
+        formData.append('hora', format(hora, 'HH:mm'));
+      } 
+      else if (servicoExtra === 'Acompanhamento com Nutricionista') {
+        if (!data || !hora) {
+          Alert.alert('Erro', 'Selecione data e horário para a consulta');
+          return;
+        }
+        formData.append('data', format(data, 'yyyy-MM-dd'));
+        formData.append('hora', format(hora, 'HH:mm'));
       }
 
-      await axios.post('http://10.0.2.2:5000/servicos/agendar', payload, {
+      // Adiciona o PDF para todos os serviços exceto Emergência
+      if (servicoExtra !== 'Emergência') {
+        formData.append('pedidoMedico', {
+          uri: pedidoMedico.uri,
+          name: pedidoMedico.name || 'pedido_medico.pdf',
+          type: pedidoMedico.type || 'application/pdf'
+        });
+      }
+
+      await axios.post('http://10.0.2.2:5000/servicos/agendar', formData, {
         headers: {
-          Authorization: `Bearer ${token?.trim()}`,
+          'Authorization': `Bearer ${token?.trim()}`,
+          'Content-Type': 'multipart/form-data',
         },
       });
 
@@ -313,8 +357,10 @@ const Agendamento = () => {
       setDescricaoProblema('');
       setTipoCirurgia('');
       setTipoFisioterapia('');
+      setProblemaCronico('');
       setData(null);
       setHora(null);
+      setPedidoMedico(null);
     } catch (err) {
       console.log(err.response?.data || err.message);
       Alert.alert('Erro', `Erro ao agendar ${servicoExtra}`);
@@ -493,7 +539,7 @@ const Agendamento = () => {
             />
           )}
 
-          <Text style={estilos.label}>Pedido Médico (PDF)</Text>
+          <Text style={estilos.label}>Pedido Médico (PDF)*</Text>
           {pedidoMedico ? (
             <View style={estilos.arquivoContainer}>
               <Text style={estilos.arquivoNome} numberOfLines={1} ellipsizeMode="middle">
@@ -647,6 +693,26 @@ const Agendamento = () => {
                 onChangeText={setDescricaoProblema}
                 multiline
               />
+
+              <Text style={estilos.label}>Data</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowDateTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={estilos.label}>Horário</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
+                </Text>
+              </TouchableOpacity>
             </>
           )}
 
@@ -676,6 +742,26 @@ const Agendamento = () => {
                 onChangeText={setDescricaoProblema}
                 multiline
               />
+
+              <Text style={estilos.label}>Data</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowDateTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={estilos.label}>Horário</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
+                </Text>
+              </TouchableOpacity>
             </>
           )}
 
@@ -695,24 +781,64 @@ const Agendamento = () => {
                   ))}
                 </Picker>
               </View>
+
+              <Text style={estilos.label}>Data</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowDateTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={estilos.label}>Horário</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
+                </Text>
+              </TouchableOpacity>
             </>
           )}
 
-          {servicoExtra === 'Emergência' && (
+          {servicoExtra === 'Tratamento Contínuo' && (
             <>
-              <Text style={estilos.label}>Descrição da Emergência</Text>
+              <Text style={estilos.label}>Problema Crônico</Text>
               <TextInput
-                style={[estilos.input, { height: 120, textAlignVertical: 'top' }]}
-                placeholder="Descreva detalhadamente a emergência"
+                style={[estilos.input, { height: 100, textAlignVertical: 'top' }]}
+                placeholder="Descreva o problema crônico que precisa de tratamento"
                 placeholderTextColor={estilos.placeholderColor}
-                value={descricaoProblema}
-                onChangeText={setDescricaoProblema}
+                value={problemaCronico}
+                onChangeText={setProblemaCronico}
                 multiline
               />
+
+              <Text style={estilos.label}>Data</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowDateTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={estilos.label}>Horário</Text>
+              <TouchableOpacity
+                style={estilos.dateInput}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <Text style={estilos.dateText}>
+                  {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
+                </Text>
+              </TouchableOpacity>
             </>
           )}
 
-          {servicoExtra !== '' && (
+          {servicoExtra === 'Acompanhamento com Nutricionista' && (
             <>
               <Text style={estilos.label}>Data</Text>
               <TouchableOpacity
@@ -733,7 +859,61 @@ const Agendamento = () => {
                   {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
                 </Text>
               </TouchableOpacity>
+            </>
+          )}
 
+          {servicoExtra === 'Emergência' && (
+            <>
+              <Text style={estilos.label}>Endereço para Atendimento*</Text>
+              <TextInput
+                style={estilos.input}
+                placeholder="Digite o endereço para a ambulância"
+                placeholderTextColor={estilos.placeholderColor}
+                value={endereco}
+                onChangeText={setEndereco}
+              />
+
+              <Text style={estilos.label}>Descrição da Emergência*</Text>
+              <TextInput
+                style={[estilos.input, { height: 120, textAlignVertical: 'top' }]}
+                placeholder="Descreva detalhadamente a emergência"
+                placeholderTextColor={estilos.placeholderColor}
+                value={descricaoProblema}
+                onChangeText={setDescricaoProblema}
+                multiline
+              />
+            </>
+          )}
+
+          {/* Seção de PDF para todos os serviços exceto Emergência */}
+          {servicoExtra !== 'Emergência' && (
+            <>
+              <Text style={estilos.label}>Pedido Médico (PDF)*</Text>
+              {pedidoMedico ? (
+                <View style={estilos.arquivoContainer}>
+                  <Text style={estilos.arquivoNome} numberOfLines={1} ellipsizeMode="middle">
+                    {pedidoMedico.name}
+                  </Text>
+                  <TouchableOpacity
+                    style={estilos.removerArquivoButton}
+                    onPress={removerPedidoMedico}
+                  >
+                    <Text style={estilos.removerArquivoText}>Remover</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={estilos.uploadButton}
+                  onPress={selecionarPedidoMedico}
+                >
+                  <Text style={estilos.uploadButtonText}>Selecionar Arquivo PDF</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+
+          {servicoExtra !== '' && (
+            <>
               {showDateTimePicker && (
                 <DateTimePicker
                   value={data || new Date()}
@@ -762,7 +942,9 @@ const Agendamento = () => {
               )}
 
               <TouchableOpacity style={estilos.button} onPress={agendarServicoExtra}>
-                <Text style={estilos.buttonText}>Agendar {servicoExtra}</Text>
+                <Text style={estilos.buttonText}>
+                  {servicoExtra === 'Emergência' ? 'Solicitar Emergência' : `Agendar ${servicoExtra}`}
+                </Text>
               </TouchableOpacity>
             </>
           )}
@@ -851,26 +1033,6 @@ const getStyles = (darkMode) => StyleSheet.create({
   },
   uploadButtonText: {
     color: darkMode ? '#fff' : '#333',
-  },
-  arquivoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: darkMode ? '#444' : '#f0f0f0',
-    padding: 15,
-    borderRadius: 5,
-    marginBottom: 15,
-  },
-  arquivoNome: {
-    color: darkMode ? '#fff' : '#333',
-    flex: 1,
-  },
-  removerArquivoButton: {
-    marginLeft: 10,
-    padding: 5,
-  },
-  removerArquivoText: {
-    color: '#ff4444',
   },
   arquivoContainer: {
     flexDirection: 'row',
