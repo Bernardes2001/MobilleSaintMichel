@@ -25,7 +25,6 @@ export default function NavBar({ navigation }) {
   const menuOptions = [
     { name: "HomePage", icon: "home", label: "Home" },
     { name: "Perfil", icon: "account", label: "Perfil" },
-    { name: "Token", icon: "key", label: "Token" },
     { name: "Sobre", icon: "information", label: "Sobre Nós" },
     { name: "Servicos", icon: "tools", label: "Serviços" },
     { name: "Especialidades", icon: "star", label: "Especialidades" },
