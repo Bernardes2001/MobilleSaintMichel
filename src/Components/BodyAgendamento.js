@@ -19,7 +19,10 @@ import * as DocumentPicker from 'expo-document-picker';
 
 const Agendamento = () => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
-  const [tipoPaciente, setTipoPaciente] = useState('');
+  const [tipoServico, setTipoServico] = useState('');
+  const [tipoPaciente, setTipoPaciente] = useState(''); // 'user' ou 'dependente'
+  const [dependentes, setDependentes] = useState([]);
+  const [dependenteSelecionado, setDependenteSelecionado] = useState('');
   const [categoriaExame, setCategoriaExame] = useState('');
   const [tipoDeExame, setTipoDeExame] = useState('');
   const [exameEspecifico, setExameEspecifico] = useState('');
@@ -144,6 +147,24 @@ const Agendamento = () => {
   };
 
   useEffect(() => {
+    const buscarDependentes = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const response = await axios.get('http://10.0.2.2:5000/dependente/listar', {
+          headers: {
+            Authorization: `Bearer ${token?.trim()}`,
+          },
+        });
+        setDependentes(response.data);
+      } catch (err) {
+        console.error('Erro ao buscar dependentes:', err);
+      }
+    };
+
+    buscarDependentes();
+  }, []);
+
+  useEffect(() => {
     const buscarMedicos = async () => {
       if (!especialidade) {
         setMedicos([]);
@@ -198,6 +219,7 @@ const Agendamento = () => {
         medico_id: Number(medico),
         data: format(data, 'yyyy-MM-dd'),
         hora: format(hora, 'HH:mm'),
+        paciente_id: tipoPaciente === 'dependente' ? dependenteSelecionado : null
       };
 
       await axios.post('http://10.0.2.2:5000/agendamento/agendar', payload, {
@@ -230,6 +252,7 @@ const Agendamento = () => {
       formData.append('exameEspecifico', exameFinal);
       formData.append('data', format(data, 'yyyy-MM-dd'));
       formData.append('hora', format(hora, 'HH:mm'));
+      formData.append('paciente_id', tipoPaciente === 'dependente' ? dependenteSelecionado : null);
 
       formData.append('pedidoMedico', {
         uri: pedidoMedico.uri,
@@ -279,6 +302,7 @@ const Agendamento = () => {
       const formData = new FormData();
 
       formData.append('tipoServico', servicoExtra);
+      formData.append('paciente_id', tipoPaciente === 'dependente' ? dependenteSelecionado : null);
 
       if (servicoExtra === 'Atendimento Domiciliar') {
         if (!endereco || !descricaoProblema || !data || !hora) {
@@ -403,9 +427,9 @@ const Agendamento = () => {
       <Text style={estilos.label}>Tipo de Serviço:</Text>
       <View style={estilos.pickerContainer}>
         <Picker
-          selectedValue={tipoPaciente}
+          selectedValue={tipoServico}
           onValueChange={(value) => {
-            setTipoPaciente(value);
+            setTipoServico(value);
             setServicoExtra('');
           }}
           style={estilos.picker}
@@ -418,7 +442,44 @@ const Agendamento = () => {
         </Picker>
       </View>
 
-      {tipoPaciente === 'exame' && (
+      {tipoServico && (
+        <>
+          <Text style={estilos.label}>Para quem é o serviço?</Text>
+          <View style={estilos.pickerContainer}>
+            <Picker
+              selectedValue={tipoPaciente}
+              onValueChange={(value) => setTipoPaciente(value)}
+              style={estilos.picker}
+              dropdownIconColor={estilos.pickerIcon.color}
+            >
+              <Picker.Item label="Selecione" value="" />
+              <Picker.Item label="Para mim" value="user" />
+              <Picker.Item label="Para um dependente" value="dependente" />
+            </Picker>
+          </View>
+
+          {tipoPaciente === 'dependente' && (
+            <>
+              <Text style={estilos.label}>Selecione o dependente</Text>
+              <View style={estilos.pickerContainer}>
+                <Picker
+                  selectedValue={dependenteSelecionado}
+                  onValueChange={(value) => setDependenteSelecionado(value)}
+                  style={estilos.picker}
+                  dropdownIconColor={estilos.pickerIcon.color}
+                >
+                  <Picker.Item label="Selecione o dependente" value="" />
+                  {dependentes.map((dep) => (
+                    <Picker.Item key={dep.id} label={dep.nome_completo} value={dep.id} />
+                  ))}
+                </Picker>
+              </View>
+            </>
+          )}
+        </>
+      )}
+
+      {tipoServico === 'exame' && tipoPaciente && (tipoPaciente === 'user' || (tipoPaciente === 'dependente' && dependenteSelecionado)) && (
         <>
           <Text style={estilos.label}>Categoria do Exame</Text>
           <View style={estilos.pickerContainer}>
@@ -567,7 +628,7 @@ const Agendamento = () => {
         </>
       )}
 
-      {tipoPaciente === 'consulta' && (
+      {tipoServico === 'consulta' && tipoPaciente && (tipoPaciente === 'user' || (tipoPaciente === 'dependente' && dependenteSelecionado)) && (
         <>
           <Text style={estilos.label}>Especialidade</Text>
           <View style={estilos.pickerContainer}>
@@ -656,7 +717,7 @@ const Agendamento = () => {
         </>
       )}
 
-      {tipoPaciente === 'servicoExtra' && (
+      {tipoServico === 'servicoExtra' && tipoPaciente && (tipoPaciente === 'user' || (tipoPaciente === 'dependente' && dependenteSelecionado)) && (
         <>
           <Text style={estilos.label}>Serviço Extra</Text>
           <View style={estilos.pickerContainer}>

@@ -1,18 +1,30 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Image, StyleSheet, View } from "react-native";
+import { ThemeContext } from '../ThemeContext';
 
-    export default function BannerContato() {
+export default function Banner() {
+    const { darkMode } = useContext(ThemeContext);
 
-        return (
-            <View>
-                <Image source={require('../../assets/bannerContatos.png')} style={estilos.img}/>
-            </View>
-        )
+    return (
+        <View style={estilos.container}>
+            <Image 
+                source={darkMode 
+                    ? require('../../assets/bannerContatosDark.png') 
+                    : require('../../assets/bannerContatos.png')} 
+                style={estilos.img}
+                resizeMode="cover"
+            />
+        </View>
+    )
+}
+
+const estilos = StyleSheet.create({
+    container: {
+        width: '100%',
+        overflow: 'hidden',
+    },
+    img: {
+        width: "100%",
+        height: 92,
     }
-
-    const estilos = StyleSheet.create({
-        img: {
-            width: '100%',
-            height: 92
-        }
-    })
+});

@@ -26,6 +26,10 @@ export default function ContainerContato() {
   const handleAddressPress = () => {
     Linking.openURL('https://www.google.com/maps/search/?api=1&query=Av.%20Marechal%20Tito,%20340');
   };
+  
+  const handleJobPress = () => {
+    Linking.openURL('https://www.linkedin.com/in/saint-michael-hospital-47ab05359/');
+  };
 
   const handleInstagramPress = () => {
     Linking.openURL('instagram://user?username=hospital.saintmichel').catch(() => {
@@ -160,6 +164,12 @@ export default function ContainerContato() {
             <Ionicons name="logo-instagram" size={20} color={estilos.contactIcon.color} />
             <Text style={estilos.contactText}>@hospital.saintmichel</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleJobPress} style={estilos.contactItem}>
+            <Ionicons name="logo-linkedin" size={20} color={estilos.contactIcon.color} />
+            <Text style={estilos.contactText}>Saint Michael Hospital</Text>
+          </TouchableOpacity>
+
         </View>
       </View>
     </ScrollView>

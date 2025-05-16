@@ -1,11 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Image, Modal, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Image, Modal, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Button, Card } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { ThemeContext } from '../ThemeContext';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from 'axios';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 
 const PerfilPaciente = () => {
   const { darkMode } = useContext(ThemeContext);
@@ -15,6 +17,7 @@ const PerfilPaciente = () => {
   const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [uploading, setUploading] = useState(false);
   
   // Estados para a modal de dependentes
   const [modalVisible, setModalVisible] = useState(false);
@@ -65,6 +68,54 @@ const PerfilPaciente = () => {
 
     buscarDadosPaciente();
   }, []);
+
+  // Função para selecionar imagem da galeria
+  const pickImage = async () => {
+    // Verifica permissões
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Precisamos de permissão para acessar suas fotos!');
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      try {
+        setUploading(true);
+        const id = await AsyncStorage.getItem('id');
+        
+        // Prepara o FormData para enviar a imagem
+        const formData = new FormData();
+        formData.append('foto', {
+          uri: result.assets[0].uri,
+          type: 'image/jpeg',
+          name: 'profile.jpg'
+        });
+
+        // Faz o upload da imagem
+        const response = await axios.put(`http://10.0.2.2:5000/paciente/${id}/foto`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        // Atualiza a imagem localmente com a URL retornada pelo servidor
+        setDados({...dados, imagemGenero: response.data.fotoUrl});
+        alert('Foto atualizada com sucesso!');
+      } catch (error) {
+        console.error('Erro ao atualizar foto:', error);
+        alert('Erro ao atualizar foto');
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
 
   // Salva as alterações dos dados do paciente
   const handleSave = async () => {
@@ -239,10 +290,24 @@ const PerfilPaciente = () => {
       {/* Seção de perfil */}
       <Card style={styles.card}>
         <View style={styles.profileSection}>
-          <Image
-            source={{ uri: dados.imagemGenero || 'https://via.placeholder.com/120' }}
-            style={styles.profileImage}
-          />
+          <TouchableOpacity onPress={pickImage} disabled={uploading}>
+            <View style={styles.imageContainer}>
+              {uploading ? (
+                <View style={styles.uploadingOverlay}>
+                  <ActivityIndicator size="large" color="#FFFFFF" />
+                </View>
+              ) : null}
+              <Image
+                source={{ uri: dados.imagemGenero || 'https://via.placeholder.com/120' }}
+                style={styles.profileImage}
+              />
+              {editMode && (
+                <Text style={styles.changePhotoText}>
+                  {uploading ? 'Enviando...' : 'Alterar foto'}
+                </Text>
+              )}
+            </View>
+          </TouchableOpacity>
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{dados.nomeCompleto}</Text>
             <Text style={styles.email}>{dados.email}</Text>
@@ -257,6 +322,7 @@ const PerfilPaciente = () => {
               onPress={handleSave}
               style={styles.button}
               labelStyle={styles.buttonText}
+              disabled={uploading}
             >
               Salvar
             </Button>
@@ -276,6 +342,7 @@ const PerfilPaciente = () => {
             onPress={() => setModalVisible(true)}
             style={styles.button}
             labelStyle={styles.buttonText}
+            disabled={uploading}
           >
             Adicionar Dependente
           </Button>
@@ -290,7 +357,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.nomeCompleto}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, nomeCompleto: text})}
             placeholderTextColor={styles.placeholderColor}
           />
@@ -299,7 +366,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.cpf}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, cpf: text})}
             placeholderTextColor={styles.placeholderColor}
           />
@@ -308,7 +375,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.dataDeNascimento}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, dataDeNascimento: text})}
             placeholderTextColor={styles.placeholderColor}
           />
@@ -317,7 +384,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.rg}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, rg: text})}
             placeholderTextColor={styles.placeholderColor}
           />
@@ -332,7 +399,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.endereco}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, endereco: text})}
             placeholderTextColor={styles.placeholderColor}
           />
@@ -341,7 +408,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.telefone}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, telefone: text})}
             placeholderTextColor={styles.placeholderColor}
             keyboardType="phone-pad"
@@ -351,7 +418,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.email}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, email: text})}
             placeholderTextColor={styles.placeholderColor}
             keyboardType="email-address"
@@ -367,7 +434,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.genero}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, genero: text})}
             placeholderTextColor={styles.placeholderColor}
           />
@@ -376,7 +443,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.tipoSanguineo}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, tipoSanguineo: text})}
             placeholderTextColor={styles.placeholderColor}
           />
@@ -391,7 +458,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.convenioMedico}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, convenioMedico: text})}
             placeholderTextColor={styles.placeholderColor}
           />
@@ -400,7 +467,7 @@ const PerfilPaciente = () => {
           <TextInput
             style={styles.input}
             value={dados.planoConvenio}
-            editable={editMode}
+            editable={editMode && !uploading}
             onChangeText={(text) => setDados({...dados, planoConvenio: text})}
             placeholderTextColor={styles.placeholderColor}
           />
@@ -424,8 +491,6 @@ const PerfilPaciente = () => {
     </ScrollView>
   );
 };
-
-
 
 const getStyles = (darkMode) => StyleSheet.create({
   container: {
@@ -459,12 +524,26 @@ const getStyles = (darkMode) => StyleSheet.create({
     alignItems: 'center',
     marginBottom: 15,
   },
+  imageContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     borderWidth: 2,
     borderColor: darkMode ? '#159EEC' : '#1F2B6C',
+  },
+  uploadingOverlay: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
   },
   profileInfo: {
     marginLeft: 15,
@@ -583,6 +662,13 @@ const getStyles = (darkMode) => StyleSheet.create({
   picker: {
     height: 50,
     width: '100%',
+  },
+  changePhotoText: {
+    color: darkMode ? '#159EEC' : '#1F2B6C',
+    textAlign: 'center',
+    marginTop: 5,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   placeholderColor: darkMode ? '#BFD2F8' : '#666666',
 });

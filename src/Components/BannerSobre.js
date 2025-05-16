@@ -1,18 +1,30 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Image, StyleSheet, View } from "react-native";
+import { ThemeContext } from '../ThemeContext';
 
-    export default function BannerSobre() {
+export default function Banner() {
+    const { darkMode } = useContext(ThemeContext);
 
-        return (
-            <View>
-                <Image source={require('../../assets/sobre.png')} style={estilos.img}/>
-            </View>
-        )
+    return (
+        <View style={estilos.container}>
+            <Image 
+                source={darkMode 
+                    ? require('../../assets/sobreNosDark.png') 
+                    : require('../../assets/sobre.png')} 
+                style={estilos.img}
+                resizeMode="cover"
+            />
+        </View>
+    )
+}
+
+const estilos = StyleSheet.create({
+    container: {
+        width: '100%',
+        overflow: 'hidden',
+    },
+    img: {
+        width: "100%",
+        height: 100,
     }
-
-    const estilos = StyleSheet.create({
-        img: {
-            width: '100%',
-            height: 92
-        }
-    })
+});
