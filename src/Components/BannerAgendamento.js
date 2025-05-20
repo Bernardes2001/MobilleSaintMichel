@@ -26,6 +26,6 @@ const estilos = StyleSheet.create({
     },
     img: {
         width: "100%",
-        height: 95,
+        height: 90,
     }
 });

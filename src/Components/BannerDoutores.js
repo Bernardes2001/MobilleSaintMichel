@@ -10,7 +10,7 @@ export default function Banner() {
         <View style={estilos.container}>
             <Image 
                 source={darkMode 
-                    ? require('../../assets/NossosMedicosDark.png') 
+                    ? require('../../assets/nossosMedicosDark.png') 
                     : require('../../assets/nossosMedicos.png')} 
                 style={estilos.img}
                 resizeMode="cover"
@@ -26,6 +26,6 @@ const estilos = StyleSheet.create({
     },
     img: {
         width: "100%",
-        height: 135,
+        height: 90,
     }
 });

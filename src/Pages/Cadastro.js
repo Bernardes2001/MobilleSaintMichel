@@ -6,7 +6,6 @@ import { Calendar } from 'react-native-calendars';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-
 const generoImagens = {
   Masculino: 'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
   Feminino: 'https://cdn-icons-png.flaticon.com/512/4140/4140047.png',
@@ -22,6 +21,7 @@ const CadastroPaciente = () => {
     cpf: '',
     rg: '',
     genero: '',
+    cep: '',
     endereco: '',
     telefone: '',
     convenioMedico: '',
@@ -39,6 +39,7 @@ const CadastroPaciente = () => {
     cpf: '',
     rg: '',
     genero: '',
+    cep: '',
     endereco: '',
     telefone: '',
     convenioMedico: '',
@@ -64,6 +65,55 @@ const CadastroPaciente = () => {
     { id: 5, nome: 'Bradesco Saúde', planos: ['Bradesco Saúde Ouro', 'Bradesco Saúde Prata', 'Bradesco Saúde Bronze'] },
   ]);
   const [planosDisponiveis, setPlanosDisponiveis] = useState([]);
+
+  // Funções para busca de CEP
+  const getCepData = async (cep) => {
+    try {
+      const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = response.data;
+
+      if (data.erro) {
+        throw new Error('CEP não encontrado');
+      }
+
+      setDados(prev => ({
+        ...prev,
+        cep: formatCEP(cep),
+        endereco: `${data.logradouro || ''}, ${data.bairro || ''}, ${data.localidade || ''} - ${data.uf || ''}`.replace(/, ,/g, '').replace(/^, /, '')
+      }));
+
+      setErrors(prev => ({ ...prev, cep: '', endereco: '' }));
+
+    } catch (error) {
+      console.error('Erro ao buscar o CEP:', error);
+      Alert.alert('CEP inválido', 'O CEP digitado não foi encontrado ou é inválido.');
+      setErrors(prev => ({ ...prev, cep: 'CEP inválido ou não encontrado' }));
+    }
+  };
+
+  const handleCepChange = (text) => {
+    const cep = text.replace(/\D/g, '');
+    const formattedCEP = formatCEP(cep);
+    
+    setDados(prev => ({ ...prev, cep: formattedCEP }));
+    
+    if (cep.length === 8) {
+      getCepData(cep);
+    }
+    
+    if (cep.length > 0 && cep.length < 8) {
+      setErrors(prev => ({ ...prev, cep: 'CEP incompleto' }));
+    } else {
+      setErrors(prev => ({ ...prev, cep: '' }));
+    }
+  };
+
+  const formatCEP = (cep) => {
+    const cleaned = cep.replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{0,5})(\d{0,3})$/);
+    if (!match) return '';
+    return `${match[1]}${match[2] ? '-' + match[2] : ''}`;
+  };
 
   const validateAge = (dateString) => {
     const today = new Date();
@@ -129,15 +179,22 @@ const CadastroPaciente = () => {
   };
 
   const handleChange = (field, value) => {
-    setDados(prev => {
-      const newDados = { ...prev, [field]: value };
-      
-      if (field === 'genero') {
-        newDados.imagemGenero = generoImagens[value] || '';
-      }
-      
-      return newDados;
-    });
+    if (field === 'endereco' && dados.cep && dados.cep.replace(/\D/g, '').length === 8) {
+      setDados(prev => {
+        const newDados = { ...prev, [field]: value, cep: '' };
+        return newDados;
+      });
+    } else {
+      setDados(prev => {
+        const newDados = { ...prev, [field]: value };
+        
+        if (field === 'genero') {
+          newDados.imagemGenero = generoImagens[value] || '';
+        }
+        
+        return newDados;
+      });
+    }
 
     if (['senha', 'confirmarSenha'].includes(field)) {
       if (dados.senha && dados.confirmarSenha) {
@@ -200,6 +257,10 @@ const CadastroPaciente = () => {
         break;
       case 'genero':
         if (!value) error = 'Gênero é obrigatório';
+        break;
+      case 'cep':
+        if (!value) error = 'CEP é obrigatório';
+        else if (value.replace(/\D/g, '').length !== 8) error = 'CEP inválido';
         break;
       case 'endereco':
         if (!value) error = 'Endereço é obrigatório';
@@ -425,6 +486,33 @@ const CadastroPaciente = () => {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Contato</Text>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>CEP *</Text>
+          <View style={[styles.cepContainer, errors.cep ? styles.inputError : null]}>
+            <TextInput
+              placeholder="00000-000"
+              value={dados.cep}
+              onChangeText={handleCepChange}
+              onBlur={() => validateField('cep', dados.cep)}
+              style={styles.cepInput}
+              keyboardType="numeric"
+              placeholderTextColor="#999"
+              maxLength={9}
+            />
+            <TouchableOpacity
+              onPress={() => {
+                if (dados.cep && dados.cep.replace(/\D/g, '').length === 8) {
+                  getCepData(dados.cep.replace(/\D/g, ''));
+                }
+              }}
+              style={styles.searchIcon}
+            >
+              <MaterialIcons name="search" size={20} color="#1F2B6C" />
+            </TouchableOpacity>
+          </View>
+          {errors.cep ? <Text style={styles.errorText}>{errors.cep}</Text> : null}
+        </View>
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Endereço *</Text>
@@ -746,6 +834,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
   },
+  cepContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E7FF',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  cepInput: {
+    flex: 1,
+    height: 50,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    color: '#2E2E2E',
+  },
   passwordInput: {
     flex: 1,
     height: 50,
@@ -754,6 +857,9 @@ const styles = StyleSheet.create({
     color: '#2E2E2E',
   },
   eyeIcon: {
+    padding: 15,
+  },
+  searchIcon: {
     padding: 15,
   },
   dateInput: {
@@ -816,55 +922,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F2B6C',
     borderRadius: 8,
     alignItems: 'center',
-  },
-  closeButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  submitButton: {
-    backgroundColor: '#1F2B6C',
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-    marginVertical: 20,
-    shadowColor: '#1F2B6C',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  imagePreviewContainer: {
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  generoImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginTop: 5,
-    borderWidth: 2,
-    borderColor: '#1F2B6C',
-  },
-  yearSelectorContainer: {
-    width: '100%',
-    paddingHorizontal: 10,
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E7FF',
-  },
-  yearPicker: {
-    width: '100%',
-    height: 50,
-  },
-  yearPickerItem: {
-    fontSize: 18,
-    color: '#1F2B6C',
+ 
   },
 });
 
