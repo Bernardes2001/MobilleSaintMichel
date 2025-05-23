@@ -22,7 +22,12 @@ const CadastroPaciente = () => {
     rg: '',
     genero: '',
     cep: '',
-    endereco: '',
+    logradouro: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    estado: '',
     telefone: '',
     convenioMedico: '',
     planoConvenio: '',
@@ -40,7 +45,10 @@ const CadastroPaciente = () => {
     rg: '',
     genero: '',
     cep: '',
-    endereco: '',
+    logradouro: '',
+    bairro: '',
+    cidade: '',
+    estado: '',
     telefone: '',
     convenioMedico: '',
     planoConvenio: '',
@@ -66,7 +74,6 @@ const CadastroPaciente = () => {
   ]);
   const [planosDisponiveis, setPlanosDisponiveis] = useState([]);
 
-  // Funções para busca de CEP
   const getCepData = async (cep) => {
     try {
       const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
@@ -79,15 +86,32 @@ const CadastroPaciente = () => {
       setDados(prev => ({
         ...prev,
         cep: formatCEP(cep),
-        endereco: `${data.logradouro || ''}, ${data.bairro || ''}, ${data.localidade || ''} - ${data.uf || ''}`.replace(/, ,/g, '').replace(/^, /, '')
+        logradouro: data.logradouro || '',
+        bairro: data.bairro || '',
+        cidade: data.localidade || '',
+        estado: data.uf || '',
       }));
 
-      setErrors(prev => ({ ...prev, cep: '', endereco: '' }));
+      setErrors(prev => ({ 
+        ...prev, 
+        cep: '',
+        logradouro: data.logradouro ? '' : 'Logradouro não encontrado',
+        bairro: data.bairro ? '' : 'Bairro não encontrado',
+        cidade: data.localidade ? '' : 'Cidade não encontrada',
+        estado: data.uf ? '' : 'Estado não encontrado'
+      }));
 
     } catch (error) {
       console.error('Erro ao buscar o CEP:', error);
       Alert.alert('CEP inválido', 'O CEP digitado não foi encontrado ou é inválido.');
-      setErrors(prev => ({ ...prev, cep: 'CEP inválido ou não encontrado' }));
+      setErrors(prev => ({ 
+        ...prev, 
+        cep: 'CEP inválido ou não encontrado',
+        logradouro: '',
+        bairro: '',
+        cidade: '',
+        estado: ''
+      }));
     }
   };
 
@@ -179,22 +203,15 @@ const CadastroPaciente = () => {
   };
 
   const handleChange = (field, value) => {
-    if (field === 'endereco' && dados.cep && dados.cep.replace(/\D/g, '').length === 8) {
-      setDados(prev => {
-        const newDados = { ...prev, [field]: value, cep: '' };
-        return newDados;
-      });
-    } else {
-      setDados(prev => {
-        const newDados = { ...prev, [field]: value };
-        
-        if (field === 'genero') {
-          newDados.imagemGenero = generoImagens[value] || '';
-        }
-        
-        return newDados;
-      });
-    }
+    setDados(prev => {
+      const newDados = { ...prev, [field]: value };
+      
+      if (field === 'genero') {
+        newDados.imagemGenero = generoImagens[value] || '';
+      }
+      
+      return newDados;
+    });
 
     if (['senha', 'confirmarSenha'].includes(field)) {
       if (dados.senha && dados.confirmarSenha) {
@@ -262,9 +279,17 @@ const CadastroPaciente = () => {
         if (!value) error = 'CEP é obrigatório';
         else if (value.replace(/\D/g, '').length !== 8) error = 'CEP inválido';
         break;
-      case 'endereco':
-        if (!value) error = 'Endereço é obrigatório';
-        else if (value.length < 10) error = 'Endereço muito curto';
+      case 'logradouro':
+        if (!value) error = 'Logradouro é obrigatório';
+        break;
+      case 'bairro':
+        if (!value) error = 'Bairro é obrigatório';
+        break;
+      case 'cidade':
+        if (!value) error = 'Cidade é obrigatória';
+        break;
+      case 'estado':
+        if (!value) error = 'Estado é obrigatório';
         break;
       case 'telefone':
         if (!value) error = 'Telefone é obrigatório';
@@ -304,7 +329,7 @@ const CadastroPaciente = () => {
     const newErrors = { ...errors };
 
     for (const field in dados) {
-      if (field === 'imagemGenero') continue;
+      if (field === 'imagemGenero' || field === 'numero' || field === 'complemento') continue;
 
       const fieldValid = validateField(field, dados[field]);
       if (!fieldValid) isValid = false;
@@ -323,12 +348,16 @@ const CadastroPaciente = () => {
     }
     
     if (!validateForm()) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos corretamente');
+      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios corretamente');
       return;
     }
 
+    // Monta o endereço completo no formato solicitado
+    const enderecoCompleto = `${dados.logradouro}, ${dados.bairro}, ${dados.cidade} - ${dados.estado}`;
+
     const dadosParaEnviar = {
       ...dados,
+      endereco: enderecoCompleto, // Adiciona o endereço formatado
       imagemGenero: dados.imagemGenero || generoImagens['Outro']
     };
 
@@ -485,7 +514,7 @@ const CadastroPaciente = () => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Contato</Text>
+        <Text style={styles.sectionTitle}>Endereço</Text>
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>CEP *</Text>
@@ -514,18 +543,98 @@ const CadastroPaciente = () => {
           {errors.cep ? <Text style={styles.errorText}>{errors.cep}</Text> : null}
         </View>
 
+        <View style={styles.row}>
+          <View style={[styles.inputContainer, { flex: 2, marginRight: 10 }]}>
+            <Text style={styles.label}>Logradouro *</Text>
+            <TextInput
+              placeholder="Rua, Avenida, etc."
+              value={dados.logradouro}
+              onChangeText={(text) => handleChange('logradouro', text)}
+              onBlur={() => validateField('logradouro', dados.logradouro)}
+              style={[styles.input, errors.logradouro ? styles.inputError : null]}
+              placeholderTextColor="#999"
+            />
+            {errors.logradouro ? <Text style={styles.errorText}>{errors.logradouro}</Text> : null}
+          </View>
+
+          <View style={[styles.inputContainer, { flex: 1 }]}>
+            <Text style={styles.label}>Número</Text>
+            <TextInput
+              placeholder="Nº"
+              value={dados.numero}
+              onChangeText={(text) => handleChange('numero', text)}
+              style={styles.input}
+              keyboardType="numeric"
+              placeholderTextColor="#999"
+            />
+          </View>
+        </View>
+
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Endereço *</Text>
+          <Text style={styles.label}>Complemento</Text>
           <TextInput
-            placeholder="Rua, número, bairro, cidade"
-            value={dados.endereco}
-            onChangeText={(text) => handleChange('endereco', text)}
-            onBlur={() => validateField('endereco', dados.endereco)}
-            style={[styles.input, errors.endereco ? styles.inputError : null]}
+            placeholder="Apto, Bloco, etc."
+            value={dados.complemento}
+            onChangeText={(text) => handleChange('complemento', text)}
+            style={styles.input}
             placeholderTextColor="#999"
           />
-          {errors.endereco ? <Text style={styles.errorText}>{errors.endereco}</Text> : null}
         </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Bairro *</Text>
+          <TextInput
+            placeholder="Bairro"
+            value={dados.bairro}
+            onChangeText={(text) => handleChange('bairro', text)}
+            onBlur={() => validateField('bairro', dados.bairro)}
+            style={[styles.input, errors.bairro ? styles.inputError : null]}
+            placeholderTextColor="#999"
+          />
+          {errors.bairro ? <Text style={styles.errorText}>{errors.bairro}</Text> : null}
+        </View>
+
+        <View style={styles.row}>
+          <View style={[styles.inputContainer, { flex: 2, marginRight: 10 }]}>
+            <Text style={styles.label}>Cidade *</Text>
+            <TextInput
+              placeholder="Cidade"
+              value={dados.cidade}
+              onChangeText={(text) => handleChange('cidade', text)}
+              onBlur={() => validateField('cidade', dados.cidade)}
+              style={[styles.input, errors.cidade ? styles.inputError : null]}
+              placeholderTextColor="#999"
+            />
+            {errors.cidade ? <Text style={styles.errorText}>{errors.cidade}</Text> : null}
+          </View>
+
+          <View style={[styles.inputContainer, { flex: 1 }]}>
+            <Text style={styles.label}>Estado *</Text>
+            <View style={[styles.pickerContainer, errors.estado ? styles.inputError : null]}>
+              <Picker
+                selectedValue={dados.estado}
+                onValueChange={(itemValue) => {
+                  handleChange('estado', itemValue);
+                  validateField('estado', itemValue);
+                }}
+                style={styles.picker}
+                dropdownIconColor="#1F2B6C"
+              >
+                <Picker.Item label="UF" value="" />
+                {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
+                  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 
+                  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map((uf) => (
+                  <Picker.Item key={uf} label={uf} value={uf} />
+                ))}
+              </Picker>
+            </View>
+            {errors.estado ? <Text style={styles.errorText}>{errors.estado}</Text> : null}
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Contato</Text>
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Telefone *</Text>
@@ -922,7 +1031,55 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F2B6C',
     borderRadius: 8,
     alignItems: 'center',
- 
+  },
+  closeButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  submitButton: {
+    backgroundColor: '#1F2B6C',
+    borderRadius: 8,
+    padding: 15,
+    alignItems: 'center',
+    marginVertical: 20,
+    shadowColor: '#1F2B6C',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  submitButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  imagePreviewContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  generoImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginTop: 5,
+    borderWidth: 2,
+    borderColor: '#1F2B6C',
+  },
+  yearSelectorContainer: {
+    width: '100%',
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E7FF',
+  },
+  yearPicker: {
+    width: '100%',
+    height: 50,
+  },
+  yearPickerItem: {
+    fontSize: 18,
+    color: '#1F2B6C',
   },
 });
 
