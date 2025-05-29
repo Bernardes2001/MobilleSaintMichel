@@ -25,7 +25,10 @@ const PerfilPaciente = () => {
     nomeCompleto: '',
     cpf: '',
     dataNascimento: new Date(),
-    parentesco: 'Filho(a)'
+    parentesco: 'Filho(a)',
+    rg: '',
+    tipoSanguineo: '',
+    genero: ''
   });
   
   // Estados para o DatePicker
@@ -71,7 +74,6 @@ const PerfilPaciente = () => {
 
   // Função para selecionar imagem da galeria
   const pickImage = async () => {
-    // Verifica permissões
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       alert('Precisamos de permissão para acessar suas fotos!');
@@ -90,7 +92,6 @@ const PerfilPaciente = () => {
         setUploading(true);
         const id = await AsyncStorage.getItem('id');
         
-        // Prepara o FormData para enviar a imagem
         const formData = new FormData();
         formData.append('foto', {
           uri: result.assets[0].uri,
@@ -98,14 +99,12 @@ const PerfilPaciente = () => {
           name: 'profile.jpg'
         });
 
-        // Faz o upload da imagem
         const response = await axios.put(`http://10.0.2.2:5000/paciente/${id}/foto`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
 
-        // Atualiza a imagem localmente com a URL retornada pelo servidor
         setDados({...dados, imagemGenero: response.data.fotoUrl});
         alert('Foto atualizada com sucesso!');
       } catch (error) {
@@ -139,7 +138,7 @@ const PerfilPaciente = () => {
 
   // Manipulador do DatePicker
   const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(Platform.OS === 'ios'); // No iOS mantém aberto
+    setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setDependente({
         ...dependente,
@@ -153,13 +152,17 @@ const PerfilPaciente = () => {
     try {
       const id = await AsyncStorage.getItem('id');
       const dependenteToSend = {
-        ...dependente,
-        dataNascimento: formatDate(dependente.dataNascimento)
+        usuario_id: parseInt(id),
+        nomeCompleto: dependente.nomeCompleto,
+        dataNascimento: formatDate(dependente.dataNascimento),
+        rg: dependente.rg,
+        cpf: dependente.cpf,
+        tipoSanguineo: dependente.tipoSanguineo,
+        genero: dependente.genero
       };
       
-      const response = await axios.post(`http://10.0.2.2:5000/paciente/${id}/dependentes`, dependenteToSend);
+      const response = await axios.post('http://10.0.2.2:5000/dependente', dependenteToSend);
       
-      // Atualiza a lista de dependentes
       setDependentes([...dependentes, response.data.dependente]);
       
       alert('Dependente adicionado com sucesso!');
@@ -168,7 +171,10 @@ const PerfilPaciente = () => {
         nomeCompleto: '',
         cpf: '',
         dataNascimento: new Date(),
-        parentesco: 'Filho(a)'
+        parentesco: 'Filho(a)',
+        rg: '',
+        tipoSanguineo: '',
+        genero: ''
       });
     } catch (error) {
       console.error('Erro ao adicionar dependente:', error);
@@ -224,6 +230,15 @@ const PerfilPaciente = () => {
               keyboardType="numeric"
             />
 
+            <Text style={styles.label}>RG:</Text>
+            <TextInput
+              style={styles.input}
+              value={dependente.rg}
+              onChangeText={(text) => setDependente({...dependente, rg: text})}
+              placeholder="RG do dependente"
+              placeholderTextColor={styles.placeholderColor}
+            />
+
             <Text style={styles.label}>Data de Nascimento:</Text>
             <TouchableOpacity 
               style={styles.input} 
@@ -245,6 +260,24 @@ const PerfilPaciente = () => {
                 themeVariant={darkMode ? 'dark' : 'light'}
               />
             )}
+
+            <Text style={styles.label}>Tipo Sanguíneo:</Text>
+            <TextInput
+              style={styles.input}
+              value={dependente.tipoSanguineo}
+              onChangeText={(text) => setDependente({...dependente, tipoSanguineo: text})}
+              placeholder="Ex: A+"
+              placeholderTextColor={styles.placeholderColor}
+            />
+
+            <Text style={styles.label}>Gênero:</Text>
+            <TextInput
+              style={styles.input}
+              value={dependente.genero}
+              onChangeText={(text) => setDependente({...dependente, genero: text})}
+              placeholder="Masculino/Feminino/Outro"
+              placeholderTextColor={styles.placeholderColor}
+            />
 
             <Text style={styles.label}>Grau de Parentesco:</Text>
             <View style={[styles.pickerContainer, { 
@@ -483,6 +516,9 @@ const PerfilPaciente = () => {
               <Text style={styles.dependenteNome}>{dep.nomeCompleto}</Text>
               <Text style={styles.dependenteInfo}>Parentesco: {dep.parentesco}</Text>
               <Text style={styles.dependenteInfo}>CPF: {dep.cpf}</Text>
+              <Text style={styles.dependenteInfo}>RG: {dep.rg}</Text>
+              <Text style={styles.dependenteInfo}>Tipo Sanguíneo: {dep.tipoSanguineo}</Text>
+              <Text style={styles.dependenteInfo}>Gênero: {dep.genero}</Text>
               <Text style={styles.dependenteInfo}>Nascimento: {formatDate(dep.dataNascimento)}</Text>
             </View>
           ))}
