@@ -44,10 +44,6 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-webview": "^13.13.2",
     "use-latest-callback": "^0.2.3",
-<<<<<<< HEAD
-    "uuid": "^11.1.0",
-=======
->>>>>>> 15a1d6196f7b632f32cb549f241a11d7ec18378d
     "yup": "^1.6.1"
   },
   "devDependencies": {
@@ -55,8 +51,4 @@
     "@react-native-community/cli": "^18.0.0"
   },
   "private": true
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 15a1d6196f7b632f32cb549f241a11d7ec18378d
