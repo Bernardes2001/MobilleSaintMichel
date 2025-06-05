@@ -62,9 +62,6 @@ const Login = ({ navigation }) => {
         },
         timeout: 10000
       });
-
-      console.log("Resposta da API:", response.data);
-
       // Verifica se a resposta foi bem-sucedida (status 2xx)
       if (response.status >= 200 && response.status < 300) {
         // Aqui você pode armazenar o token ou dados do usuário

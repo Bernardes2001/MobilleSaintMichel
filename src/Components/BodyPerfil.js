@@ -7,44 +7,48 @@ import { ThemeContext } from '../ThemeContext';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 
 const PerfilPaciente = () => {
   const { darkMode } = useContext(ThemeContext);
   const styles = getStyles(darkMode);
-  
+
   // Estados para os dados do paciente
   const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+
+  // Estados para o DatePicker
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   // Estados para a modal de dependentes
   const [modalVisible, setModalVisible] = useState(false);
   const [dependente, setDependente] = useState({
     nomeCompleto: '',
     cpf: '',
-    dataNascimento: new Date(),
-    parentesco: 'Filho(a)',
     rg: '',
+    dataNascimento: new Date(),
     tipoSanguineo: '',
-    genero: ''
+    genero: '',
+    parentesco: ''
   });
-  
-  // Estados para o DatePicker
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  
+
+
+
   // Estados para lista de dependentes
   const [dependentes, setDependentes] = useState([]);
 
   // Opções de parentesco
   const parentescoOptions = [
-    'Filho(a)',
+    'Filho',
+    'Filha',
     'Cônjuge',
     'Pai',
     'Mãe',
-    'Irmão(ã)',
-    'Avô(ó)',
+    'Irmão',
+    'Irmã',
+    'Avô',
+    'Avó',
     'Outro'
   ];
 
@@ -57,10 +61,6 @@ const PerfilPaciente = () => {
         if (id) {
           const response = await axios.get(`http://10.0.2.2:5000/paciente/${id}`);
           setDados(response.data.usuario);
-          
-          // Buscar dependentes
-          const depResponse = await axios.get(`http://10.0.2.2:5000/paciente/${id}/dependentes`);
-          setDependentes(depResponse.data.dependentes || []);
         }
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
@@ -70,6 +70,28 @@ const PerfilPaciente = () => {
     };
 
     buscarDadosPaciente();
+  }, []);
+
+  // Busca os dados do dependente adicionado ao carregar o componente
+
+  const [dependentesAdicionados, setdependentesAdicionados] = useState([]);
+  useEffect(() => {
+    const buscarDadosDependenteAdicionado = async () => {
+      setLoading(true);
+      try {
+        const id = await AsyncStorage.getItem('id');
+        if (id) {
+          const response = await axios.get(`http://10.0.2.2:5000/dependente/dependenteAdicionado/${id}`);
+          setdependentesAdicionados(response.data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    buscarDadosDependenteAdicionado();
   }, []);
 
   // Função para selecionar imagem da galeria
@@ -91,7 +113,7 @@ const PerfilPaciente = () => {
       try {
         setUploading(true);
         const id = await AsyncStorage.getItem('id');
-        
+
         const formData = new FormData();
         formData.append('foto', {
           uri: result.assets[0].uri,
@@ -105,7 +127,7 @@ const PerfilPaciente = () => {
           }
         });
 
-        setDados({...dados, imagemGenero: response.data.fotoUrl});
+        setDados({ ...dados, imagemGenero: response.data.fotoUrl });
         alert('Foto atualizada com sucesso!');
       } catch (error) {
         console.error('Erro ao atualizar foto:', error);
@@ -152,29 +174,28 @@ const PerfilPaciente = () => {
     try {
       const id = await AsyncStorage.getItem('id');
       const dependenteToSend = {
-        usuario_id: parseInt(id),
+        usuario_id: id,
         nomeCompleto: dependente.nomeCompleto,
         dataNascimento: formatDate(dependente.dataNascimento),
-        rg: dependente.rg,
         cpf: dependente.cpf,
         tipoSanguineo: dependente.tipoSanguineo,
-        genero: dependente.genero
+        genero: dependente.genero,
+        parentesco: dependente.parentesco
       };
-      
+
       const response = await axios.post('http://10.0.2.2:5000/dependente', dependenteToSend);
-      
+
       setDependentes([...dependentes, response.data.dependente]);
-      
+
       alert('Dependente adicionado com sucesso!');
       setModalVisible(false);
       setDependente({
         nomeCompleto: '',
         cpf: '',
         dataNascimento: new Date(),
-        parentesco: 'Filho(a)',
-        rg: '',
         tipoSanguineo: '',
-        genero: ''
+        genero: '',
+        parentesco: ''
       });
     } catch (error) {
       console.error('Erro ao adicionar dependente:', error);
@@ -210,12 +231,12 @@ const PerfilPaciente = () => {
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { backgroundColor: darkMode ? '#1E1E2E' : '#FFFFFF' }]}>
             <Text style={[styles.modalTitle, { color: darkMode ? '#BFD2F8' : '#1F2B6C' }]}>Adicionar Dependente</Text>
-            
+
             <Text style={styles.label}>Nome Completo:</Text>
             <TextInput
               style={styles.input}
               value={dependente.nomeCompleto}
-              onChangeText={(text) => setDependente({...dependente, nomeCompleto: text})}
+              onChangeText={(text) => setDependente({ ...dependente, nomeCompleto: text })}
               placeholder="Nome do dependente"
               placeholderTextColor={styles.placeholderColor}
             />
@@ -224,7 +245,7 @@ const PerfilPaciente = () => {
             <TextInput
               style={styles.input}
               value={dependente.cpf}
-              onChangeText={(text) => setDependente({...dependente, cpf: text})}
+              onChangeText={(text) => setDependente({ ...dependente, cpf: text })}
               placeholder="000.000.000-00"
               placeholderTextColor={styles.placeholderColor}
               keyboardType="numeric"
@@ -234,14 +255,14 @@ const PerfilPaciente = () => {
             <TextInput
               style={styles.input}
               value={dependente.rg}
-              onChangeText={(text) => setDependente({...dependente, rg: text})}
+              onChangeText={(text) => setDependente({ ...dependente, rg: text })}
               placeholder="RG do dependente"
               placeholderTextColor={styles.placeholderColor}
             />
 
             <Text style={styles.label}>Data de Nascimento:</Text>
-            <TouchableOpacity 
-              style={styles.input} 
+            <TouchableOpacity
+              style={styles.input}
               onPress={() => setShowDatePicker(true)}
             >
               <Text style={{ color: darkMode ? '#BFD2F8' : '#000000' }}>
@@ -265,7 +286,7 @@ const PerfilPaciente = () => {
             <TextInput
               style={styles.input}
               value={dependente.tipoSanguineo}
-              onChangeText={(text) => setDependente({...dependente, tipoSanguineo: text})}
+              onChangeText={(text) => setDependente({ ...dependente, tipoSanguineo: text })}
               placeholder="Ex: A+"
               placeholderTextColor={styles.placeholderColor}
             />
@@ -274,19 +295,19 @@ const PerfilPaciente = () => {
             <TextInput
               style={styles.input}
               value={dependente.genero}
-              onChangeText={(text) => setDependente({...dependente, genero: text})}
+              onChangeText={(text) => setDependente({ ...dependente, genero: text })}
               placeholder="Masculino/Feminino/Outro"
               placeholderTextColor={styles.placeholderColor}
             />
 
             <Text style={styles.label}>Grau de Parentesco:</Text>
-            <View style={[styles.pickerContainer, { 
+            <View style={[styles.pickerContainer, {
               backgroundColor: darkMode ? '#121212' : '#F0F0F0',
               borderColor: darkMode ? '#159EEC' : '#E0E0E0'
             }]}>
               <Picker
                 selectedValue={dependente.parentesco}
-                onValueChange={(itemValue) => setDependente({...dependente, parentesco: itemValue})}
+                onValueChange={(itemValue) => setDependente({ ...dependente, parentesco: itemValue })}
                 style={[styles.picker, { color: darkMode ? '#BFD2F8' : '#000000' }]}
                 dropdownIconColor={darkMode ? '#BFD2F8' : '#666666'}
               >
@@ -297,17 +318,17 @@ const PerfilPaciente = () => {
             </View>
 
             <View style={styles.modalButtons}>
-              <Button 
-                mode="contained" 
+              <Button
+                mode="contained"
                 onPress={() => setModalVisible(false)}
                 style={[styles.modalButton, { backgroundColor: '#F44336' }]}
                 labelStyle={styles.buttonText}
               >
                 Cancelar
               </Button>
-              
-              <Button 
-                mode="contained" 
+
+              <Button
+                mode="contained"
                 onPress={handleAddDependente}
                 style={[styles.modalButton, { backgroundColor: '#4CAF50' }]}
                 labelStyle={styles.buttonText}
@@ -346,32 +367,23 @@ const PerfilPaciente = () => {
             <Text style={styles.email}>{dados.email}</Text>
           </View>
         </View>
-        
+
         {/* Botões de ação */}
         <View style={styles.buttonsContainer}>
-          {editMode ? (
-            <Button 
-              mode="contained" 
-              onPress={handleSave}
-              style={styles.button}
-              labelStyle={styles.buttonText}
-              disabled={uploading}
-            >
-              Salvar
-            </Button>
-          ) : (
-            <Button 
-              mode="contained" 
-              onPress={() => setEditMode(true)}
-              style={styles.button}
-              labelStyle={styles.buttonText}
-            >
-              Editar Dados
-            </Button>
-          )}
-          
-          <Button 
-            mode="contained" 
+
+          {/* <Button
+            mode="contained"
+            onPress={handleSave}
+            style={styles.button}
+            labelStyle={styles.buttonText}
+            disabled={uploading}
+          >
+            Salvar
+          </Button> */}
+
+
+          <Button
+            mode="contained"
             onPress={() => setModalVisible(true)}
             style={styles.button}
             labelStyle={styles.buttonText}
@@ -391,7 +403,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.nomeCompleto}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, nomeCompleto: text})}
+            onChangeText={(text) => setDados({ ...dados, nomeCompleto: text })}
             placeholderTextColor={styles.placeholderColor}
           />
 
@@ -400,7 +412,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.cpf}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, cpf: text})}
+            onChangeText={(text) => setDados({ ...dados, cpf: text })}
             placeholderTextColor={styles.placeholderColor}
           />
 
@@ -409,7 +421,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.dataDeNascimento}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, dataDeNascimento: text})}
+            onChangeText={(text) => setDados({ ...dados, dataDeNascimento: text })}
             placeholderTextColor={styles.placeholderColor}
           />
 
@@ -418,7 +430,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.rg}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, rg: text})}
+            onChangeText={(text) => setDados({ ...dados, rg: text })}
             placeholderTextColor={styles.placeholderColor}
           />
         </View>
@@ -433,7 +445,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.endereco}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, endereco: text})}
+            onChangeText={(text) => setDados({ ...dados, endereco: text })}
             placeholderTextColor={styles.placeholderColor}
           />
 
@@ -442,7 +454,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.telefone}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, telefone: text})}
+            onChangeText={(text) => setDados({ ...dados, telefone: text })}
             placeholderTextColor={styles.placeholderColor}
             keyboardType="phone-pad"
           />
@@ -452,7 +464,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.email}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, email: text})}
+            onChangeText={(text) => setDados({ ...dados, email: text })}
             placeholderTextColor={styles.placeholderColor}
             keyboardType="email-address"
           />
@@ -468,7 +480,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.genero}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, genero: text})}
+            onChangeText={(text) => setDados({ ...dados, genero: text })}
             placeholderTextColor={styles.placeholderColor}
           />
 
@@ -477,7 +489,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.tipoSanguineo}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, tipoSanguineo: text})}
+            onChangeText={(text) => setDados({ ...dados, tipoSanguineo: text })}
             placeholderTextColor={styles.placeholderColor}
           />
         </View>
@@ -492,7 +504,7 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.convenioMedico}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, convenioMedico: text})}
+            onChangeText={(text) => setDados({ ...dados, convenioMedico: text })}
             placeholderTextColor={styles.placeholderColor}
           />
 
@@ -501,29 +513,31 @@ const PerfilPaciente = () => {
             style={styles.input}
             value={dados.planoConvenio}
             editable={editMode && !uploading}
-            onChangeText={(text) => setDados({...dados, planoConvenio: text})}
+            onChangeText={(text) => setDados({ ...dados, planoConvenio: text })}
             placeholderTextColor={styles.placeholderColor}
           />
         </View>
       </Card>
 
       {/* Seção de dependentes */}
-      {dependentes.length > 0 && (
+      {Array.isArray(dependentesAdicionados) && dependentesAdicionados.length > 0 && (
         <Card style={styles.card}>
           <Text style={styles.sectionTitle}>DEPENDENTES:</Text>
-          {dependentes.map((dep, index) => (
-            <View key={index} style={styles.dependenteItem}>
+          {dependentesAdicionados.map((dep, index) => (
+            <View key={dep.id || index} style={styles.dependenteItem}>
               <Text style={styles.dependenteNome}>{dep.nomeCompleto}</Text>
               <Text style={styles.dependenteInfo}>Parentesco: {dep.parentesco}</Text>
               <Text style={styles.dependenteInfo}>CPF: {dep.cpf}</Text>
-              <Text style={styles.dependenteInfo}>RG: {dep.rg}</Text>
               <Text style={styles.dependenteInfo}>Tipo Sanguíneo: {dep.tipoSanguineo}</Text>
               <Text style={styles.dependenteInfo}>Gênero: {dep.genero}</Text>
-              <Text style={styles.dependenteInfo}>Nascimento: {formatDate(dep.dataNascimento)}</Text>
+              <Text style={styles.dependenteInfo}>
+                Nascimento: {dep.dataNascimento ? formatDate(dep.dataNascimento) : '—'}
+              </Text>
             </View>
           ))}
         </Card>
       )}
+
     </ScrollView>
   );
 };
