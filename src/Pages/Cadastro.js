@@ -14,7 +14,7 @@ const generoImagens = {
 
 const CadastroPaciente = () => {
   const navigation = useNavigation();
-  
+
   const [dados, setDados] = useState({
     nomeCompleto: '',
     dataDeNascimento: '',
@@ -66,12 +66,16 @@ const CadastroPaciente = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().split('T')[0]);
 
   const [convenios, setConvenios] = useState([
-    { id: 1, nome: 'Particular', planos: ['Particular'] },
-    { id: 2, nome: 'Unimed', planos: ['Unimed Nacional', 'Unimed Empresarial', 'Unimed Individual'] },
-    { id: 3, nome: 'SulAmérica', planos: ['SulAmérica Premium', 'SulAmérica Empresarial', 'SulAmérica Básico'] },
-    { id: 4, nome: 'Amil', planos: ['Amil 400', 'Amil 500', 'Amil 600'] },
-    { id: 5, nome: 'Bradesco Saúde', planos: ['Bradesco Saúde Ouro', 'Bradesco Saúde Prata', 'Bradesco Saúde Bronze'] },
+    { id: 1, nome: "Amil", planos: ["Amil 400", "Amil 500", "Amil 700", "Amil One", "Amil Fácil"] },
+    { id: 2, nome: "Bradesco Saúde", planos: ["Nacional Flex", "Top Nacional", "Efetivo", "Preferencial Plus"] },
+    { id: 3, nome: "SulAmérica", planos: ["Clássico", "Especial 100", "Executivo", "Prestige"] },
+    { id: 4, nome: "Unimed", planos: ["Unimed Nacional", "Unimed Estadual", "Unimed Local", "Unimed Fácil"] },
+    { id: 5, nome: "Hapvida", planos: ["Mix", "Pleno", "Master", "Nacional"] },
+    { id: 6, nome: "NotreDame Intermédica", planos: ["Smart", "Advance", "Premium", "Infinity"] },
+    { id: 7, nome: "Porto Seguro Saúde", planos: ["Bronze", "Prata", "Ouro", "Diamante"] },
+    { id: 8, nome: "Golden Cross", planos: ["Essencial", "Clássico", "Especial"] },
   ]);
+
   const [planosDisponiveis, setPlanosDisponiveis] = useState([]);
 
   const getCepData = async (cep) => {
@@ -92,8 +96,8 @@ const CadastroPaciente = () => {
         estado: data.uf || '',
       }));
 
-      setErrors(prev => ({ 
-        ...prev, 
+      setErrors(prev => ({
+        ...prev,
         cep: '',
         logradouro: data.logradouro ? '' : 'Logradouro não encontrado',
         bairro: data.bairro ? '' : 'Bairro não encontrado',
@@ -104,8 +108,8 @@ const CadastroPaciente = () => {
     } catch (error) {
       console.error('Erro ao buscar o CEP:', error);
       Alert.alert('CEP inválido', 'O CEP digitado não foi encontrado ou é inválido.');
-      setErrors(prev => ({ 
-        ...prev, 
+      setErrors(prev => ({
+        ...prev,
         cep: 'CEP inválido ou não encontrado',
         logradouro: '',
         bairro: '',
@@ -118,13 +122,13 @@ const CadastroPaciente = () => {
   const handleCepChange = (text) => {
     const cep = text.replace(/\D/g, '');
     const formattedCEP = formatCEP(cep);
-    
+
     setDados(prev => ({ ...prev, cep: formattedCEP }));
-    
+
     if (cep.length === 8) {
       getCepData(cep);
     }
-    
+
     if (cep.length > 0 && cep.length < 8) {
       setErrors(prev => ({ ...prev, cep: 'CEP incompleto' }));
     } else {
@@ -142,34 +146,34 @@ const CadastroPaciente = () => {
   const validateAge = (dateString) => {
     const today = new Date();
     const birthDate = new Date(dateString);
-    
+
     if (birthDate > today) {
       return { isValid: false, error: 'Data de nascimento não pode ser no futuro' };
     }
-    
+
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     if (age < 18) {
       return { isValid: false, error: 'O paciente deve ter pelo menos 18 anos' };
     }
-    
+
     return { isValid: true, error: '' };
   };
 
   const handleYearChange = (year) => {
     const currentDate = selectedDate ? new Date(selectedDate) : new Date();
     const newDate = new Date(currentDate.setFullYear(year));
-    
+
     if (newDate > new Date()) {
       Alert.alert('Ano inválido', 'Não é possível selecionar anos futuros');
       return;
     }
-    
+
     const newDateString = newDate.toISOString().split('T')[0];
     setSelectedDate(newDateString);
     setCurrentMonth(newDateString);
@@ -177,7 +181,7 @@ const CadastroPaciente = () => {
 
   const handleConvenioChange = (convenioId) => {
     const convenioSelecionado = convenios.find(c => c.id === convenioId);
-    
+
     setDados({
       ...dados,
       convenioMedico: convenioSelecionado?.nome || '',
@@ -205,11 +209,11 @@ const CadastroPaciente = () => {
   const handleChange = (field, value) => {
     setDados(prev => {
       const newDados = { ...prev, [field]: value };
-      
+
       if (field === 'genero') {
         newDados.imagemGenero = generoImagens[value] || '';
       }
-      
+
       return newDados;
     });
 
@@ -235,14 +239,14 @@ const CadastroPaciente = () => {
     if (!match) return '';
     return `${match[1]}${match[2] ? '.' + match[2] : ''}${match[3] ? '.' + match[3] : ''}${match[4] ? '-' + match[4] : ''}`;
   };
-  
+
   const formatRG = (text) => {
     const cleaned = text.replace(/\D/g, '');
     const match = cleaned.match(/^(\d{0,2})(\d{0,3})(\d{0,3})(\d{0,2})$/);
     if (!match) return '';
     return `${match[1]}${match[2] ? '.' + match[2] : ''}${match[3] ? '.' + match[3] : ''}${match[4] ? '-' + match[4] : ''}`;
   };
-  
+
   const formatPhone = (text) => {
     const cleaned = text.replace(/\D/g, '');
     const match = cleaned.match(/^(\d{0,2})(\d{0,5})(\d{0,4})$/);
@@ -346,7 +350,7 @@ const CadastroPaciente = () => {
         return;
       }
     }
-    
+
     if (!validateForm()) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios corretamente');
       return;
@@ -379,12 +383,12 @@ const CadastroPaciente = () => {
 
   const onDayPress = (day) => {
     const validation = validateAge(day.dateString);
-    
+
     if (!validation.isValid) {
       Alert.alert('Data inválida', validation.error);
       return;
     }
-    
+
     setSelectedDate(day.dateString);
     handleChange('dataDeNascimento', day.dateString);
     setIsCalendarVisible(false);
@@ -478,12 +482,12 @@ const CadastroPaciente = () => {
             </Picker>
           </View>
           {errors.genero ? <Text style={styles.errorText}>{errors.genero}</Text> : null}
-          
+
           {dados.genero && (
             <View style={styles.imagePreviewContainer}>
               <Text style={styles.label}>Imagem do Gênero:</Text>
-              <Image 
-                source={{ uri: dados.imagemGenero }} 
+              <Image
+                source={{ uri: dados.imagemGenero }}
                 style={styles.generoImage}
                 resizeMode="contain"
               />
@@ -621,11 +625,11 @@ const CadastroPaciente = () => {
                 dropdownIconColor="#1F2B6C"
               >
                 <Picker.Item label="UF" value="" />
-                {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
-                  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 
+                {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
+                  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
                   'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map((uf) => (
-                  <Picker.Item key={uf} label={uf} value={uf} />
-                ))}
+                    <Picker.Item key={uf} label={uf} value={uf} />
+                  ))}
               </Picker>
             </View>
             {errors.estado ? <Text style={styles.errorText}>{errors.estado}</Text> : null}
@@ -758,10 +762,10 @@ const CadastroPaciente = () => {
             >
               <Picker.Item label="Selecione o convênio" value="" />
               {convenios.map(convenio => (
-                <Picker.Item 
-                  key={convenio.id} 
-                  label={convenio.nome} 
-                  value={convenio.id} 
+                <Picker.Item
+                  key={convenio.id}
+                  label={convenio.nome}
+                  value={convenio.id}
                 />
               ))}
             </Picker>
@@ -782,19 +786,19 @@ const CadastroPaciente = () => {
                 dropdownIconColor="#1F2B6C"
                 enabled={dados.convenioMedico !== 'Particular'}
               >
-                <Picker.Item 
+                <Picker.Item
                   label={
-                    dados.convenioMedico === 'Particular' 
-                      ? 'Particular' 
+                    dados.convenioMedico === 'Particular'
+                      ? 'Particular'
                       : 'Selecione o plano'
-                  } 
-                  value={dados.convenioMedico === 'Particular' ? 'Particular' : ''} 
+                  }
+                  value={dados.convenioMedico === 'Particular' ? 'Particular' : ''}
                 />
                 {planosDisponiveis.map((plano, index) => (
-                  <Picker.Item 
-                    key={index} 
-                    label={plano} 
-                    value={plano} 
+                  <Picker.Item
+                    key={index}
+                    label={plano}
+                    value={plano}
                   />
                 ))}
               </Picker>
@@ -819,12 +823,12 @@ const CadastroPaciente = () => {
                 style={styles.yearPicker}
                 itemStyle={styles.yearPickerItem}
               >
-                {Array.from({length: 100}, (_, i) => new Date().getFullYear() - i).map((year) => (
+                {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((year) => (
                   <Picker.Item key={year} label={year.toString()} value={year} />
                 ))}
               </Picker>
             </View>
-            
+
             <Calendar
               key={currentMonth}
               onDayPress={onDayPress}
@@ -850,7 +854,7 @@ const CadastroPaciente = () => {
                 indicatorColor: '#1F2B6C',
               }}
             />
-            
+
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setIsCalendarVisible(false)}

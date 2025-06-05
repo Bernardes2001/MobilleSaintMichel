@@ -40,16 +40,13 @@ const PerfilPaciente = () => {
 
   // Opções de parentesco
   const parentescoOptions = [
-    'Filho',
-    'Filha',
-    'Cônjuge',
     'Pai',
     'Mãe',
     'Irmão',
     'Irmã',
-    'Avô',
-    'Avó',
-    'Outro'
+    'Cônjuge',
+    'Filho',
+    'Filha'
   ];
 
   // Busca os dados do paciente ao carregar o componente
@@ -170,7 +167,53 @@ const PerfilPaciente = () => {
   };
 
   // Adiciona um novo dependente
+  const validateDependente = (dependente) => {
+    const errors = {};
+
+    if (!dependente.nomeCompleto || dependente.nomeCompleto.trim().length < 5) {
+      errors.nomeCompleto = 'Nome completo é obrigatório e deve ter ao menos 5 caracteres';
+    }
+
+    if (!dependente.dataNascimento) {
+      errors.dataNascimento = 'Data de nascimento é obrigatória';
+    } else {
+      const birthDate = new Date(dependente.dataNascimento);
+      const today = new Date();
+      if (birthDate > today) {
+        errors.dataNascimento = 'Data de nascimento não pode ser no futuro';
+      }
+    }
+
+    if (!dependente.cpf || dependente.cpf.replace(/\D/g, '').length !== 11) {
+      errors.cpf = 'CPF inválido';
+    }
+
+    if (!dependente.tipoSanguineo) {
+      errors.tipoSanguineo = 'Tipo sanguíneo é obrigatório';
+    }
+
+    if (!dependente.genero) {
+      errors.genero = 'Gênero é obrigatório';
+    }
+
+    if (!dependente.parentesco) {
+      errors.parentesco = 'Parentesco é obrigatório';
+    }
+
+    const isValid = Object.keys(errors).length === 0;
+
+    return { isValid, errors };
+  };
+
   const handleAddDependente = async () => {
+    const { isValid, errors } = validateDependente(dependente);
+
+    if (!isValid) {
+      // Exibe os erros, pode ser um alert só com as mensagens ou mostrar no formulário
+      const errorMessages = Object.values(errors).join('\n');
+      alert(`Erro de validação:\n${errorMessages}`);
+      return;
+    }
     try {
       const id = await AsyncStorage.getItem('id');
       const dependenteToSend = {
@@ -283,22 +326,71 @@ const PerfilPaciente = () => {
             )}
 
             <Text style={styles.label}>Tipo Sanguíneo:</Text>
-            <TextInput
-              style={styles.input}
-              value={dependente.tipoSanguineo}
-              onChangeText={(text) => setDependente({ ...dependente, tipoSanguineo: text })}
-              placeholder="Ex: A+"
-              placeholderTextColor={styles.placeholderColor}
-            />
+            <View style={{
+              backgroundColor: darkMode ? '#121212' : '#F0F0F0',
+              borderRadius: 8,
+              marginTop: 5,
+              marginBottom: 5,
+              borderWidth: 1,
+              borderColor: darkMode ? '#159EEC' : '#E0E0E0',
+              paddingHorizontal: 10,
+              justifyContent: 'center',   // centraliza verticalmente o conteúdo
+              height: 45,                 // aumenta a altura para caber o texto
+            }}>
+              <Picker
+                selectedValue={dependente.tipoSanguineo}
+                onValueChange={(itemValue) => setDependente({ ...dependente, tipoSanguineo: itemValue })}
+                style={{
+                  color: darkMode ? '#BFD2F8' : '#000000',
+                  fontSize: 14,
+                  height: 65,             // deixar igual à altura do container
+                  width: '100%',
+                }}
+                dropdownIconColor={darkMode ? '#BFD2F8' : '#000000'}
+                mode="dropdown"
+              >
+                <Picker.Item label="Selecione o tipo sanguíneo" value="" />
+                <Picker.Item label="A+" value="A+" />
+                <Picker.Item label="A-" value="A-" />
+                <Picker.Item label="B+" value="B+" />
+                <Picker.Item label="B-" value="B-" />
+                <Picker.Item label="AB+" value="AB+" />
+                <Picker.Item label="AB-" value="AB-" />
+                <Picker.Item label="O+" value="O+" />
+                <Picker.Item label="O-" value="O-" />
+              </Picker>
+            </View>
+
 
             <Text style={styles.label}>Gênero:</Text>
-            <TextInput
-              style={styles.input}
-              value={dependente.genero}
-              onChangeText={(text) => setDependente({ ...dependente, genero: text })}
-              placeholder="Masculino/Feminino/Outro"
-              placeholderTextColor={styles.placeholderColor}
-            />
+            <View style={{
+              backgroundColor: darkMode ? '#121212' : '#F0F0F0',
+              borderRadius: 8,
+              marginTop: 5,
+              marginBottom: 5,
+              borderWidth: 1,
+              borderColor: darkMode ? '#159EEC' : '#E0E0E0',
+              paddingHorizontal: 10,
+              justifyContent: 'center',   // centraliza verticalmente o conteúdo
+              height: 45,                 // aumenta a altura para caber o texto
+            }}>
+              <Picker
+                selectedValue={dependente.genero}
+                onValueChange={(itemValue) => setDependente({ ...dependente, genero: itemValue })}
+                style={{
+                  color: darkMode ? '#BFD2F8' : '#000000',
+                  fontSize: 14,
+                  height: 65,             // deixar igual à altura do container
+                  width: '100%',
+                }}
+                dropdownIconColor={darkMode ? '#BFD2F8' : '#000000'}
+                mode="dropdown"
+              >
+                <Picker.Item label="Selecione o gênero" value="" />
+                <Picker.Item label="Masculino" value="Masculino" />
+                <Picker.Item label="Feminino" value="Feminino" />
+              </Picker>
+            </View>
 
             <Text style={styles.label}>Grau de Parentesco:</Text>
             <View style={[styles.pickerContainer, {
