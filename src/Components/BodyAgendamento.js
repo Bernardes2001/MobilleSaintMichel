@@ -150,7 +150,8 @@ const Agendamento = () => {
     const buscarDependentes = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get('http://10.0.2.2:5000/dependente/listar', {
+        const id = await AsyncStorage.getItem('id');
+        const response = await axios.get(`http://10.0.2.2:5000/dependente/dependenteAdicionado/${id}`, {
           headers: {
             Authorization: `Bearer ${token?.trim()}`,
           },
@@ -163,6 +164,7 @@ const Agendamento = () => {
 
     buscarDependentes();
   }, []);
+
 
   useEffect(() => {
     const buscarMedicos = async () => {
@@ -205,6 +207,7 @@ const Agendamento = () => {
     }
   }, [tipoDeExame]);
 
+  // Função para agendar consulta para o usuário
   const agendarConsulta = async () => {
     if (!especialidade || !medico || !data || !hora) {
       Alert.alert('Erro', 'Preencha todos os campos');
@@ -218,8 +221,7 @@ const Agendamento = () => {
         especialidade,
         medico_id: Number(medico),
         data: format(data, 'yyyy-MM-dd'),
-        hora: format(hora, 'HH:mm'),
-        paciente_id: tipoPaciente === 'dependente' ? dependenteSelecionado : null
+        hora: format(hora, 'HH:mm')
       };
 
       await axios.post('http://10.0.2.2:5000/agendamento/agendar', payload, {
@@ -235,9 +237,42 @@ const Agendamento = () => {
     }
   };
 
+  // Função para agendar consulta para dependente
+  const agendarConsultaDependente = async () => {
+    if (!especialidade || !medico || !data || !hora || !dependenteSelecionado) {
+      Alert.alert('Erro', 'Preencha todos os campos');
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const id = await AsyncStorage.getItem('id');
+
+      const payload = {
+        usuario_id: id,
+        especialidade,
+        medico_id: Number(medico),
+        dependente_id: Number(dependenteSelecionado),
+        data: format(data, 'yyyy-MM-dd'),
+        hora: format(hora, 'HH:mm'),
+      };
+
+      await axios.post('http://10.0.2.2:5000/agendarDependente', payload, {
+        headers: {
+          Authorization: `Bearer ${token?.trim()}`,
+        },
+      });
+
+      Alert.alert('Sucesso', 'Consulta agendada para dependente com sucesso!');
+    } catch (err) {
+      console.log(err.response?.data || err.message);
+      Alert.alert('Erro', 'Erro ao agendar consulta.');
+    }
+  };
+
   const agendarExame = async () => {
     let exameFinal = exameEspecifico || tipoDeExame;
-    
+
     if (!categoriaExame || !exameFinal || !data || !hora || !pedidoMedico) {
       Alert.alert('Erro', 'Preencha todos os campos obrigatórios, incluindo o pedido médico');
       return;
@@ -252,7 +287,7 @@ const Agendamento = () => {
       formData.append('exameEspecifico', exameFinal);
       formData.append('data', format(data, 'yyyy-MM-dd'));
       formData.append('hora', format(hora, 'HH:mm'));
-      formData.append('paciente_id', tipoPaciente === 'dependente' ? dependenteSelecionado : null);
+      formData.append('paciente_id', tipoPaciente);
 
       formData.append('pedidoMedico', {
         uri: pedidoMedico.uri,
@@ -302,7 +337,6 @@ const Agendamento = () => {
       const formData = new FormData();
 
       formData.append('tipoServico', servicoExtra);
-      formData.append('paciente_id', tipoPaciente === 'dependente' ? dependenteSelecionado : null);
 
       if (servicoExtra === 'Atendimento Domiciliar') {
         if (!endereco || !descricaoProblema || !data || !hora) {
@@ -313,7 +347,7 @@ const Agendamento = () => {
         formData.append('descricao', descricaoProblema);
         formData.append('data', format(data, 'yyyy-MM-dd'));
         formData.append('hora', format(hora, 'HH:mm'));
-      } 
+      }
       else if (servicoExtra === 'Pequena Cirurgia') {
         if (!tipoCirurgia || !descricaoProblema || !data || !hora) {
           Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
@@ -323,7 +357,7 @@ const Agendamento = () => {
         formData.append('descricao', descricaoProblema);
         formData.append('data', format(data, 'yyyy-MM-dd'));
         formData.append('hora', format(hora, 'HH:mm'));
-      } 
+      }
       else if (servicoExtra === 'Fisioterapia') {
         if (!tipoFisioterapia || !data || !hora) {
           Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
@@ -332,7 +366,7 @@ const Agendamento = () => {
         formData.append('tipoFisioterapia', tipoFisioterapia);
         formData.append('data', format(data, 'yyyy-MM-dd'));
         formData.append('hora', format(hora, 'HH:mm'));
-      } 
+      }
       else if (servicoExtra === 'Emergência') {
         if (!endereco || !descricaoProblema) {
           Alert.alert('Erro', 'Preencha o endereço e a descrição da emergência');
@@ -340,7 +374,7 @@ const Agendamento = () => {
         }
         formData.append('endereco', endereco);
         formData.append('descricao', descricaoProblema);
-      } 
+      }
       else if (servicoExtra === 'Tratamento Contínuo') {
         if (!problemaCronico || !data || !hora) {
           Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
@@ -349,7 +383,7 @@ const Agendamento = () => {
         formData.append('problemaCronico', problemaCronico);
         formData.append('data', format(data, 'yyyy-MM-dd'));
         formData.append('hora', format(hora, 'HH:mm'));
-      } 
+      }
       else if (servicoExtra === 'Acompanhamento com Nutricionista') {
         if (!data || !hora) {
           Alert.alert('Erro', 'Selecione data e horário para a consulta');
@@ -470,7 +504,7 @@ const Agendamento = () => {
                 >
                   <Picker.Item label="Selecione o dependente" value="" />
                   {dependentes.map((dep) => (
-                    <Picker.Item key={dep.id} label={dep.nome_completo} value={dep.id} />
+                    <Picker.Item key={dep.id} label={dep.nomeCompleto} value={dep.id} />
                   ))}
                 </Picker>
               </View>
@@ -479,7 +513,7 @@ const Agendamento = () => {
         </>
       )}
 
-      {tipoServico === 'exame' && tipoPaciente && (tipoPaciente === 'user' || (tipoPaciente === 'dependente' && dependenteSelecionado)) && (
+      {tipoServico === 'exame' && tipoPaciente && (tipoPaciente === 'user') && (
         <>
           <Text style={estilos.label}>Categoria do Exame</Text>
           <View style={estilos.pickerContainer}>
@@ -628,7 +662,7 @@ const Agendamento = () => {
         </>
       )}
 
-      {tipoServico === 'consulta' && tipoPaciente && (tipoPaciente === 'user' || (tipoPaciente === 'dependente' && dependenteSelecionado)) && (
+      {tipoServico === 'consulta' && tipoPaciente && (tipoPaciente === 'user') && (
         <>
           <Text style={estilos.label}>Especialidade</Text>
           <View style={estilos.pickerContainer}>
@@ -717,7 +751,97 @@ const Agendamento = () => {
         </>
       )}
 
-      {tipoServico === 'servicoExtra' && tipoPaciente && (tipoPaciente === 'user' || (tipoPaciente === 'dependente' && dependenteSelecionado)) && (
+      {/* consulta dependente */}
+      {tipoServico === 'consulta' && tipoPaciente && (tipoPaciente === 'dependente') && (
+        <>
+          <Text style={estilos.label}>Especialidade</Text>
+          <View style={estilos.pickerContainer}>
+            <Picker
+              selectedValue={especialidade}
+              onValueChange={(value) => setEspecialidade(value)}
+              style={estilos.picker}
+              dropdownIconColor={estilos.pickerIcon.color}
+            >
+              <Picker.Item label="Selecione" value="" />
+              {especialidades.map((item) => (
+                <Picker.Item key={item} label={item} value={item} />
+              ))}
+            </Picker>
+          </View>
+
+          {especialidade !== '' && (
+            <>
+              <Text style={estilos.label}>Médico</Text>
+              <View style={estilos.pickerContainer}>
+                <Picker
+                  selectedValue={medico}
+                  onValueChange={(value) => setMedico(Number(value))}
+                  style={estilos.picker}
+                  dropdownIconColor={estilos.pickerIcon.color}
+                >
+                  <Picker.Item label="Selecione" value="" />
+                  {medicos.map((m) => (
+                    <Picker.Item key={m.id} label={m.nome_completo} value={m.id} />
+                  ))}
+                </Picker>
+              </View>
+            </>
+          )}
+
+          <Text style={estilos.label}>Data</Text>
+          <TouchableOpacity
+            style={estilos.dateInput}
+            onPress={() => setShowDateTimePicker(true)}
+          >
+            <Text style={estilos.dateText}>
+              {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={estilos.label}>Horário</Text>
+          <TouchableOpacity
+            style={estilos.dateInput}
+            onPress={() => setShowTimePicker(true)}
+          >
+            <Text style={estilos.dateText}>
+              {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
+            </Text>
+          </TouchableOpacity>
+
+          {showDateTimePicker && (
+            <DateTimePicker
+              value={data || new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedDate) => {
+                setShowDateTimePicker(false);
+                if (selectedDate) setData(selectedDate);
+              }}
+              themeVariant={darkMode ? 'dark' : 'light'}
+            />
+          )}
+
+          {showTimePicker && (
+            <DateTimePicker
+              value={hora || new Date()}
+              mode="time"
+              is24Hour={true}
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedTime) => {
+                setShowTimePicker(false);
+                if (selectedTime) setHora(selectedTime);
+              }}
+              themeVariant={darkMode ? 'dark' : 'light'}
+            />
+          )}
+
+          <TouchableOpacity style={estilos.button} onPress={agendarConsultaDependente}>
+            <Text style={estilos.buttonText}>Agendar Consulta</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {tipoServico === 'servicoExtra' && tipoPaciente && tipoPaciente === 'user' && (
         <>
           <Text style={estilos.label}>Serviço Extra</Text>
           <View style={estilos.pickerContainer}>
