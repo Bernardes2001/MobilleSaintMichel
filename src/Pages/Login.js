@@ -77,9 +77,6 @@ const Login = ({ navigation }) => {
         throw new Error(response.data.message || "Erro desconhecido no servidor");
       }
     } catch (error) {
-      console.error("Erro completo:", error);
-      console.error("Dados da resposta:", error.response?.data);
-
       let errorMessage = "Erro ao fazer login";
 
       if (error.response) {
