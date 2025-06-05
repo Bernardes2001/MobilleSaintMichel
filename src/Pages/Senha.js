@@ -1,17 +1,28 @@
+import axios from "axios";
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 
 const Senha = ({ navigation }) => {
   const [email, setEmail] = useState("");
+  const [senhaNova, setSenhaNova] = useState('');
+
   const [emailError, setEmailError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const handleResetPassword = () => {
+
+  const handleResetPassword = async () => {
+
+    // validate inputs
     setEmailError("");
     setSuccessMessage("");
 
     if (!email.trim()) {
       setEmailError("Por favor, preencha o campo de email.");
+      return;
+    }
+
+    if (!senhaNova.trim()) {
+      setEmailError("Por favor, preencha o campo de nova senha.");
       return;
     }
 
@@ -21,17 +32,29 @@ const Senha = ({ navigation }) => {
       return;
     }
 
-    // Simulação de envio de email
-    setSuccessMessage("Um link de recuperação foi enviado para o seu email.");
+    //funcao para enviar o email de recuperação
+    try {
+      const response = await axios.patch('http://10.0.2.2:5000/paciente/esqueci-senha', {
+        email,
+        senhaNova,
+      });
+      Alert.alert('Sucesso', 'Senha alterada com sucesso!', [
+        { onPress: () => navigation.goBack() }
+      ]);
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Email não encontrado';
+      Alert.alert('Erro', msg);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Recuperar Senha</Text>
       <Text style={styles.subtitle}>
-        Digite seu email cadastrado para receber instruções de recuperação de senha
+        Digite seu email cadastrado para alterar sua senha.
       </Text>
 
+      {/* Email */}
       <TextInput
         style={[styles.input, emailError ? styles.inputError : null]}
         placeholder="Email"
@@ -42,13 +65,26 @@ const Senha = ({ navigation }) => {
           setEmailError("");
         }}
       />
+
+      {/* Nova senha */}
+      <TextInput
+        style={[styles.input, emailError ? styles.inputError : null]}
+        placeholder="Nova Senha"
+        secureTextEntry={true}
+        value={senhaNova}
+        onChangeText={setSenhaNova}
+      />
+
+      {/* Exibir erros */}
       {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
       {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
+      {/* Resetar senha */}
       <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-        <Text style={styles.buttonText}>Enviar Link de Recuperação</Text>
+        <Text style={styles.buttonText}>Alterar Senha</Text>
       </TouchableOpacity>
 
+      {/* Para voltar ao login */}
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <Text style={styles.backText}>Voltar para o Login</Text>
       </TouchableOpacity>
