@@ -37,10 +37,7 @@ const Agendamento = () => {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [servicoExtra, setServicoExtra] = useState('');
   const [endereco, setEndereco] = useState('');
-  const [descricaoProblema, setDescricaoProblema] = useState('');
-  const [tipoCirurgia, setTipoCirurgia] = useState('');
-  const [tipoFisioterapia, setTipoFisioterapia] = useState('');
-  const [problemaCronico, setProblemaCronico] = useState('');
+  const [descricao, setDescricao] = useState('');
 
   const estilos = getStyles(darkMode);
 
@@ -55,28 +52,7 @@ const Agendamento = () => {
   const servicosExtras = [
     'Atendimento Domiciliar',
     'Pequena Cirurgia',
-    'Fisioterapia',
-    'Emergência',
-    'Tratamento Contínuo',
-    'Acompanhamento com Nutricionista'
-  ];
-
-  // Tipos de cirurgia
-  const tiposCirurgia = [
-    'Cirurgia Dermatológica',
-    'Biópsia',
-    'Remoção de Cisto',
-    'Sutura',
-    'Outro'
-  ];
-
-  // Tipos de fisioterapia
-  const tiposFisioterapia = [
-    'Fisioterapia Ortopédica',
-    'Fisioterapia Neurológica',
-    'Fisioterapia Respiratória',
-    'Fisioterapia Pós-operatória',
-    'Fisioterapia Esportiva'
+    'Fisioterapia'
   ];
 
   // Categorias principais de exames
@@ -320,110 +296,53 @@ const Agendamento = () => {
     }
   };
 
-  const agendarServicoExtra = async () => {
-    if (!servicoExtra) {
-      Alert.alert('Erro', 'Selecione um serviço');
-      return;
-    }
-
-    // Verificação de PDF obrigatório para todos os serviços exceto Emergência
-    if (servicoExtra !== 'Emergência' && !pedidoMedico) {
-      Alert.alert('Erro', 'É obrigatório anexar o pedido médico em PDF');
-      return;
-    }
-
+  const handleEnviarServicoExtra = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const formData = new FormData();
 
-      formData.append('tipoServico', servicoExtra);
+      const formData = {
+        tipoServico: 'servicoExtra',
+        tipoPaciente: 'user',
+        servicoExtra,
+        data: data.toISOString().split('T')[0], // formato: yyyy-mm-dd
+        hora: hora.toTimeString().split(' ')[0], // formato: HH:mm:ss
+        ...(servicoExtra === 'Atendimento Domiciliar' && {
+          endereco,
+          descricao,
+        }),
+        ...(servicoExtra === 'Pequena Cirurgia' && {
+          tipoCirurgia: 'Pequena Cirurgia', // opcional: pode ser mais específico
+          descricao,
+        }),
+        ...(servicoExtra === 'Fisioterapia' && {
+          tipoFisioterapia: 'Fisioterapia', // idem
+          descricao,
+        }),
+      };
 
-      if (servicoExtra === 'Atendimento Domiciliar') {
-        if (!endereco || !descricaoProblema || !data || !hora) {
-          Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
-          return;
-        }
-        formData.append('endereco', endereco);
-        formData.append('descricao', descricaoProblema);
-        formData.append('data', format(data, 'yyyy-MM-dd'));
-        formData.append('hora', format(hora, 'HH:mm'));
-      }
-      else if (servicoExtra === 'Pequena Cirurgia') {
-        if (!tipoCirurgia || !descricaoProblema || !data || !hora) {
-          Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
-          return;
-        }
-        formData.append('tipoCirurgia', tipoCirurgia);
-        formData.append('descricao', descricaoProblema);
-        formData.append('data', format(data, 'yyyy-MM-dd'));
-        formData.append('hora', format(hora, 'HH:mm'));
-      }
-      else if (servicoExtra === 'Fisioterapia') {
-        if (!tipoFisioterapia || !data || !hora) {
-          Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
-          return;
-        }
-        formData.append('tipoFisioterapia', tipoFisioterapia);
-        formData.append('data', format(data, 'yyyy-MM-dd'));
-        formData.append('hora', format(hora, 'HH:mm'));
-      }
-      else if (servicoExtra === 'Emergência') {
-        if (!endereco || !descricaoProblema) {
-          Alert.alert('Erro', 'Preencha o endereço e a descrição da emergência');
-          return;
-        }
-        formData.append('endereco', endereco);
-        formData.append('descricao', descricaoProblema);
-      }
-      else if (servicoExtra === 'Tratamento Contínuo') {
-        if (!problemaCronico || !data || !hora) {
-          Alert.alert('Erro', 'Preencha todos os campos obrigatórios');
-          return;
-        }
-        formData.append('problemaCronico', problemaCronico);
-        formData.append('data', format(data, 'yyyy-MM-dd'));
-        formData.append('hora', format(hora, 'HH:mm'));
-      }
-      else if (servicoExtra === 'Acompanhamento com Nutricionista') {
-        if (!data || !hora) {
-          Alert.alert('Erro', 'Selecione data e horário para a consulta');
-          return;
-        }
-        formData.append('data', format(data, 'yyyy-MM-dd'));
-        formData.append('hora', format(hora, 'HH:mm'));
-      }
-
-      // Adiciona o PDF para todos os serviços exceto Emergência
-      if (servicoExtra !== 'Emergência') {
-        formData.append('pedidoMedico', {
-          uri: pedidoMedico.uri,
-          name: pedidoMedico.name || 'pedido_medico.pdf',
-          type: pedidoMedico.type || 'application/pdf'
-        });
-      }
-
-      await axios.post('http://10.0.2.2:5000/servicos/agendar', formData, {
+      const response = await axios.post('http://10.0.2.2:5000/servicos-extras', formData, {
         headers: {
           'Authorization': `Bearer ${token?.trim()}`,
-          'Content-Type': 'multipart/form-data',
         },
       });
 
-      Alert.alert('Sucesso', `${servicoExtra} agendado com sucesso!`);
+      console.log('Resposta da API:', response.data);
+      alert('Serviço extra enviado com sucesso!');
+
+      // Limpar estados:
       setServicoExtra('');
+      setDescricao('');
       setEndereco('');
-      setDescricaoProblema('');
-      setTipoCirurgia('');
-      setTipoFisioterapia('');
-      setProblemaCronico('');
       setData(null);
       setHora(null);
-      setPedidoMedico(null);
-    } catch (err) {
-      console.log(err.response?.data || err.message);
-      Alert.alert('Erro', `Erro ao agendar ${servicoExtra}`);
+
+    } catch (error) {
+      console.error('Erro ao enviar serviço extra:', error);
+      alert('Erro ao enviar serviço extra');
     }
   };
+
+
 
   const selecionarPedidoMedico = async () => {
     try {
@@ -488,32 +407,13 @@ const Agendamento = () => {
             >
               <Picker.Item label="Selecione" value="" />
               <Picker.Item label="Para mim" value="user" />
-              <Picker.Item label="Para um dependente" value="dependente" />
+              <Picker.Item label="Para dependente" value="dependente" />
             </Picker>
           </View>
-
-          {tipoPaciente === 'dependente' && (
-            <>
-              <Text style={estilos.label}>Selecione o dependente</Text>
-              <View style={estilos.pickerContainer}>
-                <Picker
-                  selectedValue={dependenteSelecionado}
-                  onValueChange={(value) => setDependenteSelecionado(value)}
-                  style={estilos.picker}
-                  dropdownIconColor={estilos.pickerIcon.color}
-                >
-                  <Picker.Item label="Selecione o dependente" value="" />
-                  {dependentes.map((dep) => (
-                    <Picker.Item key={dep.id} label={dep.nomeCompleto} value={dep.id} />
-                  ))}
-                </Picker>
-              </View>
-            </>
-          )}
         </>
       )}
 
-      {tipoServico === 'exame' && tipoPaciente && (tipoPaciente === 'user') && (
+      {tipoServico === 'exame' && tipoPaciente === 'user' && (
         <>
           <Text style={estilos.label}>Categoria do Exame</Text>
           <View style={estilos.pickerContainer}>
@@ -547,24 +447,6 @@ const Agendamento = () => {
                 </Picker>
               </View>
 
-              {tipoDeExame && examesPorSubcategoria[tipoDeExame] && (
-                <>
-                  <Text style={estilos.label}>Exame Específico</Text>
-                  <View style={estilos.pickerContainer}>
-                    <Picker
-                      selectedValue={exameEspecifico}
-                      onValueChange={(value) => setExameEspecifico(value)}
-                      style={estilos.picker}
-                      dropdownIconColor={estilos.pickerIcon.color}
-                    >
-                      <Picker.Item label="Selecione o exame" value="" />
-                      {examesPorSubcategoria[tipoDeExame].map((item) => (
-                        <Picker.Item key={item} label={item} value={item} />
-                      ))}
-                    </Picker>
-                  </View>
-                </>
-              )}
             </>
           )}
 
@@ -754,6 +636,24 @@ const Agendamento = () => {
       {/* consulta dependente */}
       {tipoServico === 'consulta' && tipoPaciente && (tipoPaciente === 'dependente') && (
         <>
+
+          <Text style={estilos.label}>Dependente</Text>
+          <View style={estilos.pickerContainer}>
+            <Picker
+              selectedValue={dependenteSelecionado}
+              onValueChange={(value) => setDependenteSelecionado(value)}
+              style={estilos.picker}
+              dropdownIconColor={estilos.pickerIcon.color}
+            >
+              <Picker.Item label="Selecione" value="" />
+              {dependentes.map((dep) => (
+                <Picker.Item key={dep.id} label={dep.nomeCompleto} value={dep.id} />
+              ))}
+            </Picker>
+          </View>
+
+
+
           <Text style={estilos.label}>Especialidade</Text>
           <View style={estilos.pickerContainer}>
             <Picker
@@ -841,7 +741,7 @@ const Agendamento = () => {
         </>
       )}
 
-      {tipoServico === 'servicoExtra' && tipoPaciente && tipoPaciente === 'user' && (
+      {tipoServico === 'servicoExtra' && tipoPaciente === 'user' && (
         <>
           <Text style={estilos.label}>Serviço Extra</Text>
           <View style={estilos.pickerContainer}>
@@ -869,13 +769,13 @@ const Agendamento = () => {
                 onChangeText={setEndereco}
               />
 
-              <Text style={estilos.label}>Descrição do Problema</Text>
+              <Text style={estilos.label}>Detalhes do Serviço</Text>
               <TextInput
                 style={[estilos.input, { height: 100, textAlignVertical: 'top' }]}
-                placeholder="Descreva o problema ou sintomas"
+                placeholder="Descreva o  ou sintomas"
                 placeholderTextColor={estilos.placeholderColor}
-                value={descricaoProblema}
-                onChangeText={setDescricaoProblema}
+                value={descricao}
+                onChangeText={setDescricao}
                 multiline
               />
 
@@ -903,28 +803,13 @@ const Agendamento = () => {
 
           {servicoExtra === 'Pequena Cirurgia' && (
             <>
-              <Text style={estilos.label}>Tipo de Cirurgia</Text>
-              <View style={estilos.pickerContainer}>
-                <Picker
-                  selectedValue={tipoCirurgia}
-                  onValueChange={(value) => setTipoCirurgia(value)}
-                  style={estilos.picker}
-                  dropdownIconColor={estilos.pickerIcon.color}
-                >
-                  <Picker.Item label="Selecione o tipo" value="" />
-                  {tiposCirurgia.map((item) => (
-                    <Picker.Item key={item} label={item} value={item} />
-                  ))}
-                </Picker>
-              </View>
-
-              <Text style={estilos.label}>Descrição</Text>
+              <Text style={estilos.label}>Detalhes do serviço</Text>
               <TextInput
                 style={[estilos.input, { height: 100, textAlignVertical: 'top' }]}
                 placeholder="Descreva a necessidade da cirurgia"
                 placeholderTextColor={estilos.placeholderColor}
-                value={descricaoProblema}
-                onChangeText={setDescricaoProblema}
+                value={descricao}
+                onChangeText={setDescricao}
                 multiline
               />
 
@@ -952,52 +837,13 @@ const Agendamento = () => {
 
           {servicoExtra === 'Fisioterapia' && (
             <>
-              <Text style={estilos.label}>Tipo de Fisioterapia</Text>
-              <View style={estilos.pickerContainer}>
-                <Picker
-                  selectedValue={tipoFisioterapia}
-                  onValueChange={(value) => setTipoFisioterapia(value)}
-                  style={estilos.picker}
-                  dropdownIconColor={estilos.pickerIcon.color}
-                >
-                  <Picker.Item label="Selecione o tipo" value="" />
-                  {tiposFisioterapia.map((item) => (
-                    <Picker.Item key={item} label={item} value={item} />
-                  ))}
-                </Picker>
-              </View>
-
-              <Text style={estilos.label}>Data</Text>
-              <TouchableOpacity
-                style={estilos.dateInput}
-                onPress={() => setShowDateTimePicker(true)}
-              >
-                <Text style={estilos.dateText}>
-                  {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
-                </Text>
-              </TouchableOpacity>
-
-              <Text style={estilos.label}>Horário</Text>
-              <TouchableOpacity
-                style={estilos.dateInput}
-                onPress={() => setShowTimePicker(true)}
-              >
-                <Text style={estilos.dateText}>
-                  {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
-                </Text>
-              </TouchableOpacity>
-            </>
-          )}
-
-          {servicoExtra === 'Tratamento Contínuo' && (
-            <>
-              <Text style={estilos.label}>Problema Crônico</Text>
+              <Text style={estilos.label}>Detalhes do serviço</Text>
               <TextInput
                 style={[estilos.input, { height: 100, textAlignVertical: 'top' }]}
-                placeholder="Descreva o problema crônico que precisa de tratamento"
+                placeholder="Descreva a necessidade da cirurgia"
                 placeholderTextColor={estilos.placeholderColor}
-                value={problemaCronico}
-                onChangeText={setProblemaCronico}
+                value={descricao}
+                onChangeText={setDescricao}
                 multiline
               />
 
@@ -1020,80 +866,6 @@ const Agendamento = () => {
                   {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
                 </Text>
               </TouchableOpacity>
-            </>
-          )}
-
-          {servicoExtra === 'Acompanhamento com Nutricionista' && (
-            <>
-              <Text style={estilos.label}>Data</Text>
-              <TouchableOpacity
-                style={estilos.dateInput}
-                onPress={() => setShowDateTimePicker(true)}
-              >
-                <Text style={estilos.dateText}>
-                  {data ? format(data, 'dd/MM/yyyy') : 'Selecionar data'}
-                </Text>
-              </TouchableOpacity>
-
-              <Text style={estilos.label}>Horário</Text>
-              <TouchableOpacity
-                style={estilos.dateInput}
-                onPress={() => setShowTimePicker(true)}
-              >
-                <Text style={estilos.dateText}>
-                  {hora ? format(hora, 'HH:mm') : 'Selecionar horário'}
-                </Text>
-              </TouchableOpacity>
-            </>
-          )}
-
-          {servicoExtra === 'Emergência' && (
-            <>
-              <Text style={estilos.label}>Endereço para Atendimento*</Text>
-              <TextInput
-                style={estilos.input}
-                placeholder="Digite o endereço para a ambulância"
-                placeholderTextColor={estilos.placeholderColor}
-                value={endereco}
-                onChangeText={setEndereco}
-              />
-
-              <Text style={estilos.label}>Descrição da Emergência*</Text>
-              <TextInput
-                style={[estilos.input, { height: 120, textAlignVertical: 'top' }]}
-                placeholder="Descreva detalhadamente a emergência"
-                placeholderTextColor={estilos.placeholderColor}
-                value={descricaoProblema}
-                onChangeText={setDescricaoProblema}
-                multiline
-              />
-            </>
-          )}
-
-          {/* Seção de PDF para todos os serviços exceto Emergência */}
-          {servicoExtra !== 'Emergência' && (
-            <>
-              <Text style={estilos.label}>Pedido Médico (PDF)*</Text>
-              {pedidoMedico ? (
-                <View style={estilos.arquivoContainer}>
-                  <Text style={estilos.arquivoNome} numberOfLines={1} ellipsizeMode="middle">
-                    {pedidoMedico.name}
-                  </Text>
-                  <TouchableOpacity
-                    style={estilos.removerArquivoButton}
-                    onPress={removerPedidoMedico}
-                  >
-                    <Text style={estilos.removerArquivoText}>Remover</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={estilos.uploadButton}
-                  onPress={selecionarPedidoMedico}
-                >
-                  <Text style={estilos.uploadButtonText}>Selecionar Arquivo PDF</Text>
-                </TouchableOpacity>
-              )}
             </>
           )}
 
@@ -1126,7 +898,7 @@ const Agendamento = () => {
                 />
               )}
 
-              <TouchableOpacity style={estilos.button} onPress={agendarServicoExtra}>
+              <TouchableOpacity style={estilos.button} onPress={handleEnviarServicoExtra}>
                 <Text style={estilos.buttonText}>
                   {servicoExtra === 'Emergência' ? 'Solicitar Emergência' : `Agendar ${servicoExtra}`}
                 </Text>
