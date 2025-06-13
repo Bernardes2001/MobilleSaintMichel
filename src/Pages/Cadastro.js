@@ -367,7 +367,7 @@ const CadastroPaciente = () => {
 
     console.log('Dados enviados:', dadosParaEnviar);
     try {
-      const response = await axios.post('http://10.0.2.2:5000/paciente/cadastro', dadosParaEnviar);
+      const response = await axios.post('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/paciente/cadastro', dadosParaEnviar);
       Alert.alert('Sucesso', 'Paciente cadastrado com sucesso!', [
         {
           text: 'OK',

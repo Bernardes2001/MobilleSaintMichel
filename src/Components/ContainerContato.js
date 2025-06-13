@@ -60,7 +60,7 @@ export default function ContainerContato() {
     }
 
     try {
-      await axios.post('http://10.0.2.2:5000/contato', {
+      await axios.post('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/contato', {
         nome: nome.trim(),
         email: email.trim(),
         assunto: assunto.trim(),

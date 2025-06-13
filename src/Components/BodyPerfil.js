@@ -56,7 +56,7 @@ const PerfilPaciente = () => {
       try {
         const id = await AsyncStorage.getItem('id');
         if (id) {
-          const response = await axios.get(`http://10.0.2.2:5000/paciente/${id}`);
+          const response = await axios.get(`https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/paciente/${id}`);
           setDados(response.data.usuario);
         }
       } catch (error) {
@@ -78,7 +78,7 @@ const PerfilPaciente = () => {
       try {
         const id = await AsyncStorage.getItem('id');
         if (id) {
-          const response = await axios.get(`http://10.0.2.2:5000/dependente/dependenteAdicionado/${id}`);
+          const response = await axios.get(`https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/dependente/dependenteAdicionado/${id}`);
           setdependentesAdicionados(response.data);
         }
       } catch (error) {
@@ -118,7 +118,7 @@ const PerfilPaciente = () => {
           name: 'profile.jpg'
         });
 
-        const response = await axios.put(`http://10.0.2.2:5000/paciente/${id}/foto`, formData, {
+        const response = await axios.put(`https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/paciente/${id}/foto`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -139,7 +139,7 @@ const PerfilPaciente = () => {
   const handleSave = async () => {
     try {
       const id = await AsyncStorage.getItem('id');
-      await axios.put(`http://10.0.2.2:5000/paciente/${id}`, dados);
+      await axios.put(`https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/paciente/${id}`, dados);
       setEditMode(false);
       alert('Dados atualizados com sucesso!');
     } catch (error) {
@@ -226,7 +226,7 @@ const PerfilPaciente = () => {
         parentesco: dependente.parentesco
       };
 
-      const response = await axios.post('http://10.0.2.2:5000/dependente', dependenteToSend);
+      const response = await axios.post('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/dependente', dependenteToSend);
 
       setDependentes([...dependentes, response.data.dependente]);
 

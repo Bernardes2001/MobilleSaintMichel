@@ -34,7 +34,7 @@ const Senha = ({ navigation }) => {
 
     //funcao para enviar o email de recuperação
     try {
-      const response = await axios.patch('http://10.0.2.2:5000/paciente/esqueci-senha', {
+      const response = await axios.patch('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/paciente/esqueci-senha', {
         email,
         senhaNova,
       });

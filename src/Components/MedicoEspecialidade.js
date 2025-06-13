@@ -55,7 +55,7 @@ export default function MedicoEspecialidade() {
     useEffect(() => {
         const fetchMedicos = async () => {
             try {
-                const response = await axios.get('http://10.0.2.2:5000/medico');
+                const response = await axios.get('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/medico');
                 setMedico(response.data); // Resposta é um array de médicos
             } catch (error) {
                 console.error("Erro ao buscar médicos:", error);
@@ -117,7 +117,7 @@ export default function MedicoEspecialidade() {
                             <View key={index} style={estilos.cardContainer}>
                                 <View style={estilos.card}>
                                     <Image
-                                        source={{ uri: `http://10.0.2.2:5000${medico.foto}` }}
+                                        source={{ uri: `https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net${medico.foto}` }}
                                         style={estilos.medicoImage}
                                     />
                                     <View style={estilos.medicoInfo}>

@@ -52,7 +52,7 @@ const Login = ({ navigation }) => {
         senha: dados.password
       });
 
-      const response = await axios.post('http://10.0.2.2:5000/paciente/login', {
+      const response = await axios.post('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/paciente/login', {
         email: dados.email,
         senha: dados.password // Note que o backend espera "senha"
       }, {

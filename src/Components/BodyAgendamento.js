@@ -127,7 +127,7 @@ const Agendamento = () => {
       try {
         const token = await AsyncStorage.getItem('token');
         const id = await AsyncStorage.getItem('id');
-        const response = await axios.get(`http://10.0.2.2:5000/dependente/dependenteAdicionado/${id}`, {
+        const response = await axios.get(`https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/dependente/dependenteAdicionado/${id}`, {
           headers: {
             Authorization: `Bearer ${token?.trim()}`,
           },
@@ -150,7 +150,7 @@ const Agendamento = () => {
       }
 
       try {
-        const response = await axios.get(`http://10.0.2.2:5000/medico/medicos?especialidade=${especialidade}`);
+        const response = await axios.get(`https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/medico/medicos?especialidade=${especialidade}`);
         setMedicos(response.data);
       } catch (err) {
         Alert.alert('Erro', 'Erro ao buscar médicos.');
@@ -200,7 +200,7 @@ const Agendamento = () => {
         hora: format(hora, 'HH:mm')
       };
 
-      await axios.post('http://10.0.2.2:5000/agendamento/agendar', payload, {
+      await axios.post('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/agendamento/agendar', payload, {
         headers: {
           Authorization: `Bearer ${token?.trim()}`,
         },
@@ -233,7 +233,7 @@ const Agendamento = () => {
         hora: format(hora, 'HH:mm'),
       };
 
-      await axios.post('http://10.0.2.2:5000/agendarDependente', payload, {
+      await axios.post('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/agendarDependente', payload, {
         headers: {
           Authorization: `Bearer ${token?.trim()}`,
         },
@@ -271,7 +271,7 @@ const Agendamento = () => {
         type: pedidoMedico.type || 'application/pdf'
       });
 
-      const response = await axios.post('http://10.0.2.2:5000/exame/criarexame', formData, {
+      const response = await axios.post('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/exame/criarexame', formData, {
         headers: {
           'Authorization': `Bearer ${token?.trim()}`,
           'Content-Type': 'multipart/form-data',
@@ -320,7 +320,7 @@ const Agendamento = () => {
         }),
       };
 
-      const response = await axios.post('http://10.0.2.2:5000/servicos-extras', formData, {
+      const response = await axios.post('https://apisaintmichel-a2fjc0c4d3bygmhe.eastus2-01.azurewebsites.net/servicos-extras', formData, {
         headers: {
           'Authorization': `Bearer ${token?.trim()}`,
         },
