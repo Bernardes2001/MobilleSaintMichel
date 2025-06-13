@@ -26,7 +26,6 @@ const PerfilPaciente = () => {
   const [dependente, setDependente] = useState({
     nomeCompleto: '',
     cpf: '',
-    rg: '',
     dataNascimento: new Date(),
     tipoSanguineo: '',
     genero: '',
@@ -292,15 +291,6 @@ const PerfilPaciente = () => {
               placeholder="000.000.000-00"
               placeholderTextColor={styles.placeholderColor}
               keyboardType="numeric"
-            />
-
-            <Text style={styles.label}>RG:</Text>
-            <TextInput
-              style={styles.input}
-              value={dependente.rg}
-              onChangeText={(text) => setDependente({ ...dependente, rg: text })}
-              placeholder="RG do dependente"
-              placeholderTextColor={styles.placeholderColor}
             />
 
             <Text style={styles.label}>Data de Nascimento:</Text>
